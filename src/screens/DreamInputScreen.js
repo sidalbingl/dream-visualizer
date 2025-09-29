@@ -1,195 +1,369 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { StatusBar } from 'expo-status-bar';
-import * as Speech from 'expo-speech';
-import { Audio } from 'expo-av';
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  Animated,
+  Easing,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { Mic, Sparkles, MicOff } from "lucide-react-native";
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+} from "@expo-google-fonts/inter";
 
-const DreamInputScreen = ({ navigation }) => {
-  const [dreamText, setDreamText] = useState('');
+export default function DreamInputScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
+  const [dreamText, setDreamText] = useState("");
   const [isRecording, setIsRecording] = useState(false);
-  const [recording, setRecording] = useState(null);
-  const [selectedStyle, setSelectedStyle] = useState('realistic');
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  const visualizationStyles = [
-    { id: 'realistic', name: 'Realistic', icon: '🎭' },
-    { id: 'anime', name: 'Anime', icon: '🎌' },
-    { id: 'painterly', name: 'Painterly', icon: '🎨' },
-    { id: 'surreal', name: 'Surreal', icon: '🌌' },
-    { id: 'minimalist', name: 'Minimalist', icon: '⚪' }
-  ];
+  // Animation values
+  const glowAnimation = useRef(new Animated.Value(0)).current;
+  const micPulse = useRef(new Animated.Value(1)).current;
 
-  const startRecording = async () => {
-    try {
-      const permission = await Audio.requestPermissionsAsync();
-      if (permission.status !== 'granted') {
-        Alert.alert('Permission Required', 'Please allow microphone access to record your dream.');
-        return;
-      }
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+  });
 
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
+  useEffect(() => {
+    // Continuous glow animation for the visualize button
+    const glowLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnimation, {
+          toValue: 1,
+          duration: 2000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: false,
+        }),
+        Animated.timing(glowAnimation, {
+          toValue: 0,
+          duration: 2000,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: false,
+        }),
+      ])
+    );
+    glowLoop.start();
 
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
+    return () => glowLoop.stop();
+  }, []);
+
+  useEffect(() => {
+    if (isRecording) {
+      const micLoop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(micPulse, {
+            toValue: 1.2,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(micPulse, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ])
       );
-      setRecording(recording);
+      micLoop.start();
+      return () => micLoop.stop();
+    }
+  }, [isRecording]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
+  const handleMicPress = () => {
+    if (isRecording) {
+      setIsRecording(false);
+      // Simulate voice-to-text completion
+      setDreamText(dreamText + " I was flying through a starlit sky...");
+    } else {
       setIsRecording(true);
-    } catch (err) {
-      Alert.alert('Error', 'Failed to start recording');
     }
   };
 
-  const stopRecording = async () => {
-    if (!recording) return;
-
-    setIsRecording(false);
-    await recording.stopAndUnloadAsync();
-    const uri = recording.getURI();
-    
-    // TODO: Convert audio to text using speech-to-text service
-    Alert.alert('Audio Recorded', 'Audio-to-text conversion will be implemented with speech recognition service');
-    
-    setRecording(null);
-  };
-
-  const handleSubmit = () => {
+  const handleVisualize = async () => {
     if (!dreamText.trim()) {
-      Alert.alert('Empty Dream', 'Please describe your dream before visualizing it.');
+      Alert.alert(
+        "Please describe your dream",
+        "Enter some text or use voice recording to describe your dream."
+      );
       return;
     }
 
-    if (dreamText.length < 10) {
-      Alert.alert('Too Short', 'Please provide a more detailed description of your dream (at least 10 characters).');
-      return;
-    }
+    setIsGenerating(true);
 
-    // Navigate to visualization screen with dream data
-    navigation.navigate('Visualization', {
-      dreamText: dreamText.trim(),
-      style: selectedStyle,
-      timestamp: new Date().toISOString()
-    });
-  };
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
-  const handleTextToSpeech = () => {
-    if (dreamText.trim()) {
-      Speech.speak(dreamText, {
-        language: 'en',
-        pitch: 1.0,
-        rate: 0.8,
+      // Navigate to Visualization screen
+      navigation.navigate("Visualization", {
+        dreamText: dreamText.trim(),
+        style: "realistic",
+        timestamp: new Date().toISOString(),
       });
+    } catch (error) {
+      Alert.alert("Error", "Failed to generate dream visualization. Please try again.");
+    } finally {
+      setIsGenerating(false);
     }
   };
+
+  const glowColor = glowAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["rgba(102, 126, 234, 0.3)", "rgba(102, 126, 234, 0.8)"],
+  });
 
   return (
-    <LinearGradient
-      colors={['#1a1a2e', '#16213e', '#0f3460']}
-      style={styles.container}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <StatusBar style="light" />
-      
-      <KeyboardAvoidingView 
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <LinearGradient
+        colors={["#1a1a2e", "#16213e", "#0f3460"]}
+        style={{ flex: 1 }}
       >
-        <View style={styles.header}>
-          <Text style={styles.title}>Describe Your Dream</Text>
-          <Text style={styles.subtitle}>Share your dream and watch it come to life</Text>
+        <StatusBar style="light" />
+
+        {/* Header */}
+        <View
+          style={{
+            paddingTop: insets.top + 16,
+            paddingHorizontal: 20,
+            paddingBottom: 16,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 28,
+              fontFamily: "Inter_600SemiBold",
+              color: "#FFFFFF",
+              textAlign: "center",
+            }}
+          >
+            Dream Visualizer
+          </Text>
+          <Text
+            style={{
+              fontSize: 16,
+              fontFamily: "Inter_400Regular",
+              color: "rgba(255, 255, 255, 0.8)",
+              textAlign: "center",
+              marginTop: 4,
+            }}
+          >
+            Bring your dreams to life
+          </Text>
         </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Dream Description</Text>
-          <TextInput
-            style={styles.textInput}
-            placeholder="I was flying over a magical forest with glowing trees and colorful butterflies..."
-            placeholderTextColor="rgba(255, 255, 255, 0.5)"
-            value={dreamText}
-            onChangeText={setDreamText}
-            multiline
-            numberOfLines={6}
-            textAlignVertical="top"
-          />
-          <Text style={styles.charCount}>{dreamText.length}/500</Text>
-        </View>
-
-        {/* Style Selection */}
-        <View style={styles.styleContainer}>
-          <Text style={styles.styleLabel}>Visualization Style</Text>
-          <View style={styles.styleGrid}>
-            {visualizationStyles.map((style) => (
-              <TouchableOpacity
-                key={style.id}
-                style={[
-                  styles.styleButton,
-                  selectedStyle === style.id && styles.styleButtonActive
-                ]}
-                onPress={() => setSelectedStyle(style.id)}
+        {/* Content */}
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 20,
+            paddingBottom: insets.bottom + 20,
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              paddingVertical: 40,
+            }}
+          >
+            {/* Dream Input Card */}
+            <View
+              style={{
+                backgroundColor: "rgba(255, 255, 255, 0.15)",
+                borderRadius: 20,
+                padding: 24,
+                marginBottom: 40,
+                borderWidth: 1,
+                borderColor: "rgba(255, 255, 255, 0.2)",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontFamily: "Inter_600SemiBold",
+                  color: "#FFFFFF",
+                  marginBottom: 16,
+                  textAlign: "center",
+                }}
               >
-                <Text style={styles.styleIcon}>{style.icon}</Text>
-                <Text style={[
-                  styles.styleName,
-                  selectedStyle === style.id && styles.styleNameActive
-                ]}>
-                  {style.name}
+                Describe Your Dream
+              </Text>
+
+              {/* Text Input with Mic */}
+              <View style={{ position: "relative" }}>
+                <TextInput
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    borderRadius: 16,
+                    padding: 20,
+                    paddingRight: 60,
+                    fontSize: 16,
+                    fontFamily: "Inter_400Regular",
+                    color: "#333",
+                    minHeight: 120,
+                    textAlignVertical: "top",
+                  }}
+                  placeholder="Describe your dream..."
+                  placeholderTextColor="#999"
+                  multiline
+                  value={dreamText}
+                  onChangeText={setDreamText}
+                />
+
+                {/* Mic Button */}
+                <TouchableOpacity
+                  onPress={handleMicPress}
+                  style={{
+                    position: "absolute",
+                    bottom: 16,
+                    right: 16,
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: isRecording ? "#f87171" : "#667eea",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    transform: [{ scale: micPulse }],
+                  }}
+                >
+                  {isRecording ? (
+                    <MicOff size={20} color="#FFFFFF" />
+                  ) : (
+                    <Mic size={20} color="#FFFFFF" />
+                  )}
+                </TouchableOpacity>
+              </View>
+
+              {isRecording && (
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontFamily: "Inter_500Medium",
+                    color: "#f87171",
+                    textAlign: "center",
+                    marginTop: 12,
+                  }}
+                >
+                  Recording... Tap mic to stop
+                </Text>
+              )}
+            </View>
+
+            {/* Visualize Button */}
+            <Animated.View
+              style={{
+                shadowColor: glowColor,
+                shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: 1,
+                shadowRadius: 20,
+                elevation: 10,
+              }}
+            >
+              <TouchableOpacity
+                onPress={handleVisualize}
+                disabled={isGenerating}
+                style={{
+                  backgroundColor: isGenerating
+                    ? "rgba(102, 126, 234, 0.6)"
+                    : "#667eea",
+                  borderRadius: 25,
+                  paddingVertical: 18,
+                  paddingHorizontal: 32,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderWidth: 1,
+                  borderColor: "rgba(255, 255, 255, 0.3)",
+                }}
+              >
+                <Sparkles size={24} color="#FFFFFF" style={{ marginRight: 8 }} />
+                <Text
+                  style={{
+                    fontSize: 18,
+                    fontFamily: "Inter_600SemiBold",
+                    color: "#FFFFFF",
+                  }}
+                >
+                  {isGenerating ? "Visualizing..." : "Visualize Dream"}
                 </Text>
               </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+            </Animated.View>
 
-        {/* Voice Recording */}
-        <View style={styles.voiceContainer}>
-          <Text style={styles.voiceLabel}>Voice Recording</Text>
-          <View style={styles.voiceButtons}>
-            <TouchableOpacity
-              style={[styles.voiceButton, isRecording && styles.voiceButtonRecording]}
-              onPress={isRecording ? stopRecording : startRecording}
-            >
-              <Text style={styles.voiceIcon}>
-                {isRecording ? '⏹️' : '🎤'}
-              </Text>
-              <Text style={styles.voiceText}>
-                {isRecording ? 'Stop Recording' : 'Record Voice'}
-              </Text>
-            </TouchableOpacity>
-            
-            {dreamText.trim() && (
-              <TouchableOpacity
-                style={styles.voiceButton}
-                onPress={handleTextToSpeech}
+            {/* Recent Dreams */}
+            <View style={{ marginTop: 60 }}>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontFamily: "Inter_600SemiBold",
+                  color: "#FFFFFF",
+                  marginBottom: 16,
+                }}
               >
-                <Text style={styles.voiceIcon}>🔊</Text>
-                <Text style={styles.voiceText}>Play</Text>
-              </TouchableOpacity>
-            )}
+                Recent Dreams
+              </Text>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 4 }}
+              >
+                {[
+                  "Flying through clouds",
+                  "Walking in a mystical forest",
+                  "Swimming with dolphins",
+                ].map((dream, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => setDreamText(dream)}
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                      borderRadius: 12,
+                      padding: 16,
+                      marginRight: 12,
+                      minWidth: 120,
+                      borderWidth: 1,
+                      borderColor: "rgba(255, 255, 255, 0.2)",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontFamily: "Inter_500Medium",
+                        color: "#FFFFFF",
+                        textAlign: "center",
+                      }}
+                    >
+                      {dream}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
           </View>
-        </View>
-
-        {/* Action Buttons */}
-        <View style={styles.actionContainer}>
-          <TouchableOpacity
-            style={styles.favoritesButton}
-            onPress={() => navigation.navigate('Favorites')}
-          >
-            <Text style={styles.favoritesText}>View Favorites</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <LinearGradient
-              colors={['#6366f1', '#8b5cf6']}
-              style={styles.submitButtonGradient}
-            >
-              <Text style={styles.submitText}>Visualize Dream</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </LinearGradient>
+        </ScrollView>
+      </LinearGradient>
+    </KeyboardAvoidingView>
   );
-};
-
-
-export default DreamInputScreen;
+}

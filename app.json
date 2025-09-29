@@ -24,10 +24,14 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "jsEngine": "jsc"
     },
     "plugins": [
-      "expo-av"
-    ]
+      "expo-av",
+      "expo-font"
+    ],
+    "jsEngine": "hermes"
   }
 }

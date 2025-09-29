@@ -1,96 +1,196 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  Animated,
+  Easing,
+  useColorScheme,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { StatusBar } from "expo-status-bar";
+import { Cloud, Moon, Sparkles } from "lucide-react-native";
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
 
-const SplashScreen = ({ navigation }) => {
-  const fadeAnim = new Animated.Value(0);
-  const scaleAnim = new Animated.Value(0.8);
+export default function SplashScreen({ navigation }) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.3)).current;
+  const cloudAnim = useRef(new Animated.Value(-50)).current;
+  const moonAnim = useRef(new Animated.Value(-100)).current;
+  const sparklesAnim = useRef(new Animated.Value(0)).current;
+  const textAnim = useRef(new Animated.Value(50)).current;
+
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
 
   useEffect(() => {
-    // Animation sequence
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    if (!fontsLoaded) return;
 
-    // Navigate to onboarding after 3 seconds
-    const timer = setTimeout(() => {
-      navigation.replace('Onboarding');
+    // Start animations
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+
+    Animated.timing(scaleAnim, {
+      toValue: 1,
+      duration: 1200,
+      easing: Easing.elastic(1.2),
+      useNativeDriver: true,
+    }).start();
+
+    Animated.timing(cloudAnim, {
+      toValue: 0,
+      duration: 1500,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+
+    Animated.timing(moonAnim, {
+      toValue: 0,
+      duration: 1800,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+
+    Animated.timing(textAnim, {
+      toValue: 0,
+      duration: 1000,
+      delay: 500,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+
+    const sparklesLoop = Animated.loop(
+      Animated.timing(sparklesAnim, {
+        toValue: 1,
+        duration: 3000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+    sparklesLoop.start();
+
+    // Navigate after animation
+    const timeout = setTimeout(() => {
+      navigation.replace("Onboarding");
     }, 3000);
 
-    return () => clearTimeout(timer);
-  }, []);
+    return () => clearTimeout(timeout);
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return null;
+
+  const sparklesRotation = sparklesAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
 
   return (
-    <LinearGradient
-      colors={['#6366f1', '#8b5cf6', '#a855f7']}
-      style={styles.container}
-    >
-      <StatusBar style="light" />
-      <Animated.View
-        style={[
-          styles.content,
-          {
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
-          },
-        ]}
+    <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+      <LinearGradient
+        colors={
+          isDark
+            ? ["#1a1a2e", "#16213e", "#0f1419", "#1a1a2e"]
+            : ["#667eea", "#764ba2", "#f093fb", "#667eea"]
+        }
+        style={{ flex: 1 }}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       >
-        <Text style={styles.title}>Dream Visualizer</Text>
-        <Text style={styles.subtitle}>AI-Powered Dream Visualization</Text>
-        <View style={styles.loadingContainer}>
-          <View style={styles.loadingBar} />
+        <StatusBar style="light" />
+
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 40,
+          }}
+        >
+          {/* Floating Elements */}
+          <View style={{ position: "absolute", top: "20%", left: "10%" }}>
+            <Animated.View style={{ transform: [{ translateY: cloudAnim }] }}>
+              <Cloud size={40} color="rgba(255, 255, 255, 0.3)" />
+            </Animated.View>
+          </View>
+
+          <View style={{ position: "absolute", top: "15%", right: "15%" }}>
+            <Animated.View style={{ transform: [{ translateY: moonAnim }] }}>
+              <Moon size={35} color="rgba(255, 255, 255, 0.4)" />
+            </Animated.View>
+          </View>
+
+          <View style={{ position: "absolute", bottom: "25%", left: "20%" }}>
+            <Animated.View style={{ transform: [{ rotate: sparklesRotation }] }}>
+              <Sparkles size={30} color="rgba(255, 255, 255, 0.5)" />
+            </Animated.View>
+          </View>
+
+          {/* Logo */}
+          <Animated.View
+            style={{ alignItems: "center", transform: [{ scale: scaleAnim }] }}
+          >
+            <View
+              style={{
+                width: 120,
+                height: 120,
+                borderRadius: 60,
+                backgroundColor: "rgba(255, 255, 255, 0.15)",
+                borderWidth: 2,
+                borderColor: "rgba(255, 255, 255, 0.3)",
+                justifyContent: "center",
+                alignItems: "center",
+                marginBottom: 30,
+              }}
+            >
+              <Cloud size={50} color="#FFFFFF" />
+              <View style={{ position: "absolute", top: 30, right: 25 }}>
+                <Sparkles size={20} color="rgba(255, 255, 255, 0.8)" />
+              </View>
+            </View>
+
+            {/* Title */}
+            <Animated.View
+              style={{ alignItems: "center", transform: [{ translateY: textAnim }] }}
+            >
+              <Text
+                style={{
+                  fontSize: 32,
+                  fontFamily: "Inter_700Bold",
+                  color: "#FFFFFF",
+                  textAlign: "center",
+                  marginBottom: 8,
+                }}
+              >
+                Dream Visualizer
+              </Text>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontFamily: "Inter_400Regular",
+                  color: "rgba(255, 255, 255, 0.8)",
+                  textAlign: "center",
+                }}
+              >
+                Bring your dreams to life with AI
+              </Text>
+            </Animated.View>
+          </Animated.View>
         </View>
-      </Animated.View>
-    </LinearGradient>
+      </LinearGradient>
+    </Animated.View>
   );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: 40,
-    textAlign: 'center',
-  },
-  loadingContainer: {
-    width: 200,
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  loadingBar: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'white',
-    borderRadius: 2,
-  },
-});
-
-export default SplashScreen;
+}

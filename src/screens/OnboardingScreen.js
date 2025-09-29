@@ -1,222 +1,254 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { StatusBar } from 'expo-status-bar';
+import React, { useState, useRef } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Dimensions,
+  useColorScheme,
+  ScrollView,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { Cloud, Moon, Sparkles, ArrowRight } from "lucide-react-native";
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+} from "@expo-google-fonts/inter";
 
-const OnboardingScreen = ({ navigation }) => {
-  const [currentStep, setCurrentStep] = useState(0);
+const { width } = Dimensions.get("window");
 
-  const steps = [
-    {
-      title: "Welcome to Dream Visualizer",
-      description: "Transform your dreams into stunning AI-generated visualizations",
-      icon: "🌟"
-    },
-    {
-      title: "Record Your Dreams",
-      description: "Share your dreams through text or voice recording",
-      icon: "📝"
-    },
-    {
-      title: "AI Magic",
-      description: "Watch as AI brings your dreams to life with beautiful animations",
-      icon: "✨"
-    },
-    {
-      title: "Premium Features",
-      description: "Unlock exclusive styles, AR view, and high-resolution exports",
-      icon: "👑"
-    }
-  ];
+const onboardingData = [
+  {
+    icon: Cloud,
+    title: "Record Your Dreams",
+    description: "Capture your dreams through text or voice recordings",
+    colors: ["#667eea", "#764ba2"],
+  },
+  {
+    icon: Sparkles,
+    title: "See AI Animation",
+    description:
+      "Watch your dreams come to life with beautiful AI-generated visuals",
+    colors: ["#f093fb", "#f5576c"],
+  },
+  {
+    icon: Moon,
+    title: "Get Interpretation",
+    description: "Discover the hidden meanings behind your dreams",
+    colors: ["#4facfe", "#00f2fe"],
+  },
+];
+
+export default function OnboardingScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const scrollViewRef = useRef(null);
+
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
+    if (currentIndex < onboardingData.length - 1) {
+      const nextIndex = currentIndex + 1;
+      scrollViewRef.current?.scrollTo({
+        x: width * nextIndex,
+        animated: true,
+      });
+      setCurrentIndex(nextIndex);
     } else {
-      // Show paywall before going to main app
-      navigation.navigate('Paywall');
+      navigation.replace("MainTabs");
     }
   };
 
   const handleSkip = () => {
-    navigation.navigate('Paywall');
+    navigation.replace("MainTabs");
   };
+
+  const handleScroll = (event) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    const index = Math.round(scrollPosition / width);
+    setCurrentIndex(index);
+  };
+
+  const currentData = onboardingData[currentIndex];
 
   return (
     <LinearGradient
-      colors={['#1a1a2e', '#16213e', '#0f3460']}
-      style={styles.container}
+      colors={currentData.colors}
+      style={{ flex: 1 }}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
     >
       <StatusBar style="light" />
-      
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.content}>
-          <Text style={styles.icon}>{steps[currentStep].icon}</Text>
-          <Text style={styles.title}>{steps[currentStep].title}</Text>
-          <Text style={styles.description}>{steps[currentStep].description}</Text>
-        </View>
 
-        {/* Demo Section */}
-        <View style={styles.demoContainer}>
-          <Text style={styles.demoTitle}>See It In Action</Text>
-          <View style={styles.demoBox}>
-            <Text style={styles.demoText}>"I was flying over a magical forest with glowing trees..."</Text>
-            <View style={styles.demoAnimation}>
-              <Text style={styles.demoIcon}>🎬</Text>
-              <Text style={styles.demoLabel}>AI Animation</Text>
-            </View>
-          </View>
-        </View>
+      {/* Skip Button */}
+      <View
+        style={{
+          paddingTop: insets.top + 16,
+          paddingHorizontal: 20,
+          alignItems: "flex-end",
+          zIndex: 10,
+        }}
+      >
+        <TouchableOpacity onPress={handleSkip}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontFamily: "Inter_500Medium",
+              color: "rgba(255, 255, 255, 0.8)",
+            }}
+          >
+            Skip
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-        {/* Step Indicators */}
-        <View style={styles.stepContainer}>
-          {steps.map((_, index) => (
+      {/* Scrollable Content */}
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={handleScroll}
+        scrollEventThrottle={16}
+        style={{ flex: 1 }}
+      >
+        {onboardingData.map((item, index) => {
+          const IconComponent = item.icon;
+          return (
             <View
               key={index}
-              style={[
-                styles.stepDot,
-                index === currentStep && styles.stepDotActive
-              ]}
-            />
-          ))}
-        </View>
+              style={{
+                width: width,
+                justifyContent: "center",
+                alignItems: "center",
+                paddingHorizontal: 40,
+              }}
+            >
+              {/* Logo/Icon */}
+              <View
+                style={{
+                  width: 120,
+                  height: 120,
+                  borderRadius: 60,
+                  backgroundColor: "rgba(255, 255, 255, 0.2)",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginBottom: 60,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 10 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 20,
+                }}
+              >
+                <IconComponent size={48} color="#FFFFFF" />
+              </View>
+
+              {/* Title */}
+              <Text
+                style={{
+                  fontSize: 32,
+                  fontFamily: "Inter_600SemiBold",
+                  color: "#FFFFFF",
+                  textAlign: "center",
+                  marginBottom: 20,
+                  lineHeight: 40,
+                }}
+              >
+                {item.title}
+              </Text>
+
+              {/* Description */}
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontFamily: "Inter_400Regular",
+                  color: "rgba(255, 255, 255, 0.9)",
+                  textAlign: "center",
+                  lineHeight: 26,
+                  marginBottom: 60,
+                }}
+              >
+                {item.description}
+              </Text>
+            </View>
+          );
+        })}
       </ScrollView>
 
-      {/* Bottom Actions */}
-      <View style={styles.bottomContainer}>
-        <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-          <Text style={styles.skipText}>Skip</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-          <LinearGradient
-            colors={['#6366f1', '#8b5cf6']}
-            style={styles.nextButtonGradient}
+      {/* Progress Dots */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          marginBottom: 40,
+        }}
+      >
+        {onboardingData.map((_, index) => (
+          <View
+            key={index}
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor:
+                index === currentIndex
+                  ? "#FFFFFF"
+                  : "rgba(255, 255, 255, 0.4)",
+              marginHorizontal: 4,
+            }}
+          />
+        ))}
+      </View>
+
+      {/* Next Button */}
+      <View
+        style={{
+          paddingHorizontal: 20,
+          paddingBottom: insets.bottom + 20,
+        }}
+      >
+        <TouchableOpacity
+          onPress={handleNext}
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.2)",
+            borderRadius: 25,
+            paddingVertical: 16,
+            paddingHorizontal: 24,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            borderWidth: 1,
+            borderColor: "rgba(255, 255, 255, 0.3)",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 18,
+              fontFamily: "Inter_600SemiBold",
+              color: "#FFFFFF",
+              marginRight: 8,
+            }}
           >
-            <Text style={styles.nextText}>
-              {currentStep === steps.length - 1 ? 'Get Started' : 'Next'}
-            </Text>
-          </LinearGradient>
+            {currentIndex === onboardingData.length - 1
+              ? "Get Started"
+              : "Next"}
+          </Text>
+          <ArrowRight size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
     </LinearGradient>
   );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  icon: {
-    fontSize: 80,
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: 'white',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  description: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
-    textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: 20,
-  },
-  demoContainer: {
-    marginVertical: 40,
-    paddingHorizontal: 20,
-  },
-  demoTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'white',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  demoBox: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  demoText: {
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 14,
-    fontStyle: 'italic',
-    marginBottom: 16,
-  },
-  demoAnimation: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  demoIcon: {
-    fontSize: 24,
-    marginRight: 8,
-  },
-  demoLabel: {
-    color: '#6366f1',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  stepContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginVertical: 20,
-  },
-  stepDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    marginHorizontal: 4,
-  },
-  stepDotActive: {
-    backgroundColor: '#6366f1',
-  },
-  bottomContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    paddingBottom: 40,
-  },
-  skipButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-  },
-  skipText: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    fontSize: 16,
-  },
-  nextButton: {
-    borderRadius: 25,
-    overflow: 'hidden',
-  },
-  nextButtonGradient: {
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-  },
-  nextText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
-
-export default OnboardingScreen;
+}
