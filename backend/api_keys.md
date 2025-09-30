@@ -1,3 +1,0 @@
-FAL_API_KEY: "bfe6d76b-e02f-40bf-8e1e-086bc00ab63b:c07043d28fc81c8f626db93ad7185541"
-ADAPTY_PUBLIC_SDK_KEY: "public_live_jaX974rN.WpfMbhJsUyHiKgTc82sV"
-ADAPTY_SECRET_KEY: "secret_live_TGAUxJkQ.iIwmfCzXG5V60SstPNArdtmbDa2YopO8"
