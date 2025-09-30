@@ -7,15 +7,40 @@ import {
     StyleSheet,
     SafeAreaView,
     ScrollView,
+    Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
+
+// Firebase servis importu
+import { register } from "../services/authService"; 
 
 export default function RegisterScreen({ navigation }) {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+
+    const handleRegister = async () => {
+        if (!email || !password || !confirmPassword) {
+            Alert.alert("Hata", "Lütfen tüm alanları doldurun");
+            return;
+        }
+        if (password !== confirmPassword) {
+            Alert.alert("Hata", "Şifreler uyuşmuyor");
+            return;
+        }
+
+        try {
+            const user = await register(email, password);
+            Alert.alert("Kayıt Başarılı", `Hoş geldin ${user.email}`);
+            // Başarılıysa ana sayfaya yönlendir
+            navigation.replace("MainTabs");
+        } catch (error) {
+            console.log(error);
+            Alert.alert("Kayıt Hatası", error.message);
+        }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -43,6 +68,7 @@ export default function RegisterScreen({ navigation }) {
                         placeholder="Email"
                         placeholderTextColor="#aaa"
                         keyboardType="email-address"
+                        autoCapitalize="none"
                         style={styles.input}
                     />
                     <TextInput
@@ -63,7 +89,7 @@ export default function RegisterScreen({ navigation }) {
                     />
 
                     {/* Register Button */}
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={handleRegister}>
                         <LinearGradient
                             colors={["#5211d4", "#764ba2"]}
                             style={styles.registerButton}
@@ -106,7 +132,6 @@ export default function RegisterScreen({ navigation }) {
                         Log In
                     </Text>
                 </Text>
-
             </ScrollView>
         </SafeAreaView>
     );

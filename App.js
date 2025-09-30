@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,6 +7,8 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Platform } from 'react-native';
+import { Adapty } from 'react-native-adapty';
+import Constants from 'expo-constants';
 
 // Screens
 import SplashScreen from './src/screens/SplashScreen';
@@ -113,6 +115,12 @@ function MainTabs() {
 
 // ---------------- Root Stack ---------------- 
 export default function App() {
+  useEffect(() => {
+    const sdkKey = Constants.expoConfig?.extra?.adaptyPublicSdkKey || Constants.manifest?.extra?.adaptyPublicSdkKey;
+    if (sdkKey) {
+      Adapty.activate(sdkKey);
+    }
+  }, []);
   return (
     <SafeAreaProvider>
       <PaperProvider>

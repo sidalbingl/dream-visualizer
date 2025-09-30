@@ -19,9 +19,16 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#6366f1"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.anonymous.dreamvisualizer"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -32,6 +39,9 @@
       "expo-av",
       "expo-font"
     ],
+    "extra": {
+      "adaptyPublicSdkKey": "public_live_jaX974rN.WpfMbhJsUyHiKgTc82sV"
+    },
     "jsEngine": "hermes"
   }
 }

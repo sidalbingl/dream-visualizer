@@ -1,10 +1,33 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
+import { Adapty, AdaptyPaywallProduct, AdaptyProfile } from 'react-native-adapty';
 
 const PaywallScreen = ({ navigation }) => {
   const [selectedPlan, setSelectedPlan] = useState('monthly');
+  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    const loadPaywall = async () => {
+      try {
+        setLoading(true);
+        // Paywall placement ve locale Adapty Dashboard ile eşleşmeli
+        const paywall = await Adapty.getPaywall("default_paywall");
+        const fetchedProducts = await Adapty.getPaywallProducts(paywall);
+        setProducts(fetchedProducts || []);
+        const prof = await Adapty.getProfile();
+        setProfile(prof);
+      } catch (e) {
+        console.warn('Adapty paywall load error', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPaywall();
+  }, []);
 
   const features = [
     { icon: '🎨', title: 'Exclusive Art Styles', description: 'Access to premium animation styles' },
@@ -15,16 +38,42 @@ const PaywallScreen = ({ navigation }) => {
     { icon: '🚫', title: 'No Watermarks', description: 'Clean exports without branding' }
   ];
 
-  const handleSubscribe = () => {
-    // TODO: Integrate with Adapty SDK
-    Alert.alert(
-      'Premium Subscription',
-      'Premium features will be available after payment integration with Adapty SDK',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Continue Free', onPress: () => navigation.navigate('DreamInput') }
-      ]
-    );
+  const selectedProduct = useMemo(() => {
+    if (!products.length) return null;
+    // Basit eşleme: aylık = first monthly, yıllık = first annual
+    if (selectedPlan === 'yearly') {
+      return products.find(p => p.subscriptionPeriod?.unit === 'year') || products[0];
+    }
+    return products.find(p => p.subscriptionPeriod?.unit === 'month') || products[0];
+  }, [products, selectedPlan]);
+
+  const handleSubscribe = async () => {
+    try {
+      if (!selectedProduct) {
+        Alert.alert('Store', 'Ürünler yüklenemedi. Lütfen tekrar deneyin.');
+        return;
+      }
+      setLoading(true);
+      const result = await Adapty.makePurchase(selectedProduct);
+      const updated = await Adapty.getProfile();
+      setProfile(updated);
+      const isPremium = updated?.accessLevels?.premium?.isActive;
+      if (isPremium) {
+        Alert.alert('Teşekkürler!', 'Premium etkin. Keyfini çıkarın.');
+        navigation.goBack();
+      } else {
+        Alert.alert('Bilgi', 'Satın alma tamamlandı fakat premium görünmüyor.');
+      }
+    } catch (e) {
+      if (e?.code === '1') {
+        // user cancelled
+        return;
+      }
+      console.warn('purchase error', e);
+      Alert.alert('Hata', 'Satın alma başarısız.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleContinueFree = () => {
@@ -73,6 +122,16 @@ const PaywallScreen = ({ navigation }) => {
         {/* Pricing Plans */}
         <View style={styles.pricingContainer}>
           <Text style={styles.pricingTitle}>Choose Your Plan</Text>
+          {loading && (
+            <View style={{ paddingVertical: 8 }}>
+              <ActivityIndicator color="#8b5cf6" />
+            </View>
+          )}
+          {!loading && products.length === 0 && (
+            <Text style={{ color: 'rgba(255,255,255,0.7)', marginBottom: 12 }}>
+              Ürünler bulunamadı. Mağaza yapılandırmasını kontrol edin.
+            </Text>
+          )}
           
           <TouchableOpacity
             style={[styles.planButton, selectedPlan === 'monthly' && styles.planButtonActive]}
@@ -80,7 +139,9 @@ const PaywallScreen = ({ navigation }) => {
           >
             <View style={styles.planContent}>
               <Text style={styles.planTitle}>Monthly</Text>
-              <Text style={styles.planPrice}>$9.99/month</Text>
+              <Text style={styles.planPrice}>
+                {products.length ? selectedProduct?.localizedPrice || '$9.99' : '$9.99'}/month
+              </Text>
             </View>
             {selectedPlan === 'monthly' && <Text style={styles.planCheck}>✓</Text>}
           </TouchableOpacity>
@@ -91,7 +152,9 @@ const PaywallScreen = ({ navigation }) => {
           >
             <View style={styles.planContent}>
               <Text style={styles.planTitle}>Yearly</Text>
-              <Text style={styles.planPrice}>$59.99/year</Text>
+              <Text style={styles.planPrice}>
+                {products.length ? (products.find(p => p.subscriptionPeriod?.unit === 'year')?.localizedPrice || '$59.99') : '$59.99'}/year
+              </Text>
               <Text style={styles.planSavings}>Save 50%</Text>
             </View>
             {selectedPlan === 'yearly' && <Text style={styles.planCheck}>✓</Text>}

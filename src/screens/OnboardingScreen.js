@@ -68,12 +68,12 @@ export default function OnboardingScreen({ navigation }) {
       });
       setCurrentIndex(nextIndex);
     } else {
-      navigation.replace("MainTabs");
+      navigation.replace("Register");
     }
   };
 
   const handleSkip = () => {
-    navigation.replace("MainTabs");
+    navigation.replace("Register");
   };
 
   const handleScroll = (event) => {
