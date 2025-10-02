@@ -11,9 +11,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#6366f1"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
@@ -24,8 +22,6 @@
       },
       "permissions": [
         "android.permission.RECORD_AUDIO",
-        "android.permission.MODIFY_AUDIO_SETTINGS",
-        "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "package": "com.anonymous.dreamvisualizer"
@@ -35,13 +31,8 @@
       "bundler": "metro",
       "jsEngine": "jsc"
     },
-    "plugins": [
-      "expo-av",
-      "expo-font"
-    ],
-    "extra": {
-      "adaptyPublicSdkKey": "public_live_jaX974rN.WpfMbhJsUyHiKgTc82sV"
-    },
+    "plugins": ["expo-av", "expo-font"],
+    "extra": {},
     "jsEngine": "hermes"
   }
 }

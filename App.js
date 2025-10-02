@@ -7,8 +7,10 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Platform } from 'react-native';
-import { Adapty } from 'react-native-adapty';
 import Constants from 'expo-constants';
+
+// ✅ UserContext import
+import { UserProvider } from './src/context/UserContext';
 
 // Screens
 import SplashScreen from './src/screens/SplashScreen';
@@ -25,7 +27,7 @@ import RegisterScreen from './src/screens/RegisterScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// ---------------- Bottom Tabs (footer) ---------------- 
+// ---------------- Bottom Tabs ---------------- 
 function MainTabs() {
   return (
     <Tab.Navigator
@@ -71,13 +73,7 @@ function MainTabs() {
           if (route.name === 'Profile') iconName = focused ? 'person' : 'person-outline';
           
           return (
-            <View
-              style={{
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingTop: 4,
-              }}
-            >
+            <View style={{ alignItems: 'center', justifyContent: 'center', paddingTop: 4 }}>
               <Ionicons name={iconName} size={focused ? 26 : 24} color={color} />
             </View>
           );
@@ -89,26 +85,10 @@ function MainTabs() {
         },
       })}
     >
-      <Tab.Screen 
-        name="Home" 
-        component={DreamInputScreen}
-        options={{ tabBarLabel: 'Home' }}
-      />
-      <Tab.Screen 
-        name="Gallery" 
-        component={GalleryScreen}
-        options={{ tabBarLabel: 'Gallery' }}
-      />
-      <Tab.Screen 
-        name="Premium" 
-        component={PaywallScreen}
-        options={{ tabBarLabel: 'Premium' }}
-      />
-      <Tab.Screen 
-        name="Profile" 
-        component={ProfileScreen}
-        options={{ tabBarLabel: 'Profile' }}
-      />
+      <Tab.Screen name="Home" component={DreamInputScreen} options={{ tabBarLabel: 'Home' }} />
+      <Tab.Screen name="Gallery" component={GalleryScreen} options={{ tabBarLabel: 'Gallery' }} />
+      <Tab.Screen name="Premium" component={PaywallScreen} options={{ tabBarLabel: 'Premium' }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: 'Profile' }} />
     </Tab.Navigator>
   );
 }
@@ -116,38 +96,34 @@ function MainTabs() {
 // ---------------- Root Stack ---------------- 
 export default function App() {
   useEffect(() => {
-    const sdkKey = Constants.expoConfig?.extra?.adaptyPublicSdkKey || Constants.manifest?.extra?.adaptyPublicSdkKey;
-    if (sdkKey) {
-      Adapty.activate(sdkKey);
-    }
+    // ❌ Adapty devre dışı
   }, []);
+
   return (
     <SafeAreaProvider>
       <PaperProvider>
-        <NavigationContainer>
-          <StatusBar style="light" backgroundColor="#6366f1" />
-          <Stack.Navigator
-            initialRouteName="Splash"
-            screenOptions={{
-              headerShown: false,
-              cardStyle: { backgroundColor: '#1a1a2e' },
-            }}
-          >
-            {/* İlk akış */}
-            <Stack.Screen name="Splash" component={SplashScreen} />
-            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-            
-            {/* Auth Screens */}
-            <Stack.Screen name="Register" component={RegisterScreen} />
-            <Stack.Screen name="Login" component={LoginScreen} />
-            
-            {/* Diğer sayfalar */}
-            <Stack.Screen name="Paywall" component={PaywallScreen} />
-            <Stack.Screen name="MainTabs" component={MainTabs} />
-            <Stack.Screen name="Visualization" component={VisualizationScreen} />
-            <Stack.Screen name="Favorites" component={FavoritesScreen} />
-          </Stack.Navigator>
-        </NavigationContainer>
+        {/* ✅ Tüm uygulamayı UserProvider ile sardık */}
+        <UserProvider>
+          <NavigationContainer>
+            <StatusBar style="light" backgroundColor="#6366f1" />
+            <Stack.Navigator
+              initialRouteName="Splash"
+              screenOptions={{
+                headerShown: false,
+                cardStyle: { backgroundColor: '#1a1a2e' },
+              }}
+            >
+              <Stack.Screen name="Splash" component={SplashScreen} />
+              <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+              <Stack.Screen name="Register" component={RegisterScreen} />
+              <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="Paywall" component={PaywallScreen} />
+              <Stack.Screen name="MainTabs" component={MainTabs} />
+              <Stack.Screen name="Visualization" component={VisualizationScreen} />
+              <Stack.Screen name="Favorites" component={FavoritesScreen} />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </UserProvider>
       </PaperProvider>
     </SafeAreaProvider>
   );

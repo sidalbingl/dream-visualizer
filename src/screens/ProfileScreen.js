@@ -7,12 +7,14 @@ import {
   useColorScheme,
   Alert,
   StyleSheet,
+  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { User, Settings, HelpCircle, Share2, Star, Heart, Crown, Moon, ChevronRight, LogOut } from "lucide-react-native";
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from "@expo-google-fonts/inter";
+import { logout } from "../services/authService";
 
 // Profil eylemleri
 const profileActions = [
@@ -25,7 +27,7 @@ const profileActions = [
   { icon: HelpCircle, label: "Help & Support", subtitle: "Get help and contact support", onPress: () => console.log("Help & Support") },
 ];
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -33,11 +35,32 @@ export default function ProfileScreen() {
   const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold });
   if (!fontsLoaded) return null;
 
-  const handleSignOut = () => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Sign Out", style: "destructive", onPress: () => Alert.alert("Signed out successfully") },
-    ]);
+  const handleSignOut = async () => {
+    const confirmed = Platform.OS === 'web' 
+      ? window.confirm("Are you sure you want to sign out?")
+      : await new Promise((resolve) => {
+          Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+            { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+            { text: "Sign Out", style: "destructive", onPress: () => resolve(true) },
+          ]);
+        });
+
+    if (!confirmed) return;
+
+    try {
+      await logout();
+      
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
+    } catch (error) {
+      if (Platform.OS === 'web') {
+        alert("Sign out failed: " + (error.message || "Unknown error"));
+      } else {
+        Alert.alert("Sign Out Error", error.message || "An error occurred");
+      }
+    }
   };
 
   const renderActionItem = (action) => {
