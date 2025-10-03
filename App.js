@@ -23,6 +23,8 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import GalleryScreen from './src/screens/GalleryScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
+import EditProfileScreen from './src/screens/EditProfileScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -69,7 +71,6 @@ function MainTabs() {
           let iconName;
           if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';
           if (route.name === 'Gallery') iconName = focused ? 'images' : 'images-outline';
-          if (route.name === 'Premium') iconName = focused ? 'star' : 'star-outline';
           if (route.name === 'Profile') iconName = focused ? 'person' : 'person-outline';
           
           return (
@@ -87,7 +88,6 @@ function MainTabs() {
     >
       <Tab.Screen name="Home" component={DreamInputScreen} options={{ tabBarLabel: 'Home' }} />
       <Tab.Screen name="Gallery" component={GalleryScreen} options={{ tabBarLabel: 'Gallery' }} />
-      <Tab.Screen name="Premium" component={PaywallScreen} options={{ tabBarLabel: 'Premium' }} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: 'Profile' }} />
     </Tab.Navigator>
   );
@@ -121,6 +121,9 @@ export default function App() {
               <Stack.Screen name="MainTabs" component={MainTabs} />
               <Stack.Screen name="Visualization" component={VisualizationScreen} />
               <Stack.Screen name="Favorites" component={FavoritesScreen} />
+              <Stack.Screen name="Settings" component={SettingsScreen} />
+              <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+
             </Stack.Navigator>
           </NavigationContainer>
         </UserProvider>

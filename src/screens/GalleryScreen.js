@@ -164,11 +164,12 @@ export default function GalleryScreen() {
 
   return (
     <LinearGradient
-      colors={isDark ? ["#1a1a2e", "#16213e", "#0f1419"] : ["#667eea", "#764ba2", "#f093fb"]}
+      colors={["#1a1a2e", "#16213e", "#0f3460"]}
       style={{ flex: 1 }}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
     >
+
       <StatusBar style="light" />
       <View style={{ paddingTop: insets.top + 16, paddingHorizontal: 20, paddingBottom: 16 }}>
         <Text style={{ fontSize: 28, fontFamily: "Inter_600SemiBold", color: "#fff", marginBottom: 16 }}>

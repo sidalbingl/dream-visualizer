@@ -17,10 +17,10 @@ const firebaseConfig = {
   appId: "1:111160570433:web:d5276eb6d9bdd2614f8cc0",
 };
 
-// Eğer zaten initialize edilmişse tekrar etmiyoruz
+
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-// Mobilde kalıcı login için AsyncStorage kullanıyoruz
+// Mobilde kalıcı login için 
 export const auth =
   Platform.OS === "web"
     ? getAuth(app)

@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
+import { Video } from 'expo-av';
+
 // ❌ Adapty şimdilik devre dışı
 // import { Adapty, AdaptyPaywallProduct, AdaptyProfile } from 'react-native-adapty';
 
@@ -31,13 +33,23 @@ const PaywallScreen = ({ navigation }) => {
   }, []);
 
   const features = [
-    { icon: '🎨', title: 'Exclusive Art Styles', description: 'Access to premium animation styles' },
-    { icon: '📱', title: 'AR Visualization', description: 'View your dreams in augmented reality' },
-    { icon: '📸', title: 'High Resolution Export', description: 'Download in 4K quality' },
-    { icon: '⚡', title: 'Priority Processing', description: 'Faster AI generation times' },
-    { icon: '💾', title: 'Unlimited Storage', description: 'Save unlimited dream visualizations' },
-    { icon: '🚫', title: 'No Watermarks', description: 'Clean exports without branding' }
+    {
+      icon: '🎬',
+      title: 'Dream to Video',
+      description: 'Turn your written dreams into vivid AI-generated videos'
+    },
+    {
+      icon: '📝',
+      title: 'Extended Interpretations',
+      description: 'Get longer and more detailed dream interpretations'
+    },
+    {
+      icon: '📺',
+      title: 'High-Quality Exports',
+      description: 'Download your dream videos in stunning 4K resolution'
+    }
   ];
+
 
   const selectedProduct = useMemo(() => {
     if (!products.length) return null;
@@ -84,7 +96,7 @@ const PaywallScreen = ({ navigation }) => {
       style={styles.container}
     >
       <StatusBar style="light" />
-      
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
@@ -97,9 +109,17 @@ const PaywallScreen = ({ navigation }) => {
           <View style={styles.demoBox}>
             <Text style={styles.demoIcon}>✨</Text>
             <Text style={styles.demoTitle}>Premium Animation Preview</Text>
-            <View style={styles.demoAnimation}>
-              <Text style={styles.demoText}>Your dream visualization will look like this...</Text>
-            </View>
+            <Video
+              source={require('../../assets/output-4.mp4')}
+              style={{ width: '100%', height: 200, borderRadius: 12 }}
+              resizeMode="cover"
+              isLooping
+              shouldPlay
+              isMuted
+            />
+            <Text style={[styles.demoText, { marginTop: 12 }]}>
+              Your dream visualization will look like this...
+            </Text>
           </View>
         </View>
 
@@ -130,7 +150,7 @@ const PaywallScreen = ({ navigation }) => {
               Ürünler bulunamadı. Mağaza yapılandırmasını kontrol edin.
             </Text>
           )}
-          
+
           <TouchableOpacity
             style={[styles.planButton, selectedPlan === 'monthly' && styles.planButtonActive]}
             onPress={() => setSelectedPlan('monthly')}
@@ -161,7 +181,7 @@ const PaywallScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.freeButton} onPress={handleContinueFree}>
           <Text style={styles.freeText}>Continue with Free Version</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.subscribeButton} onPress={handleSubscribe}>
           <LinearGradient
             colors={['#6366f1', '#8b5cf6']}

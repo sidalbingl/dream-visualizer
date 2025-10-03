@@ -18,14 +18,36 @@ import { logout } from "../services/authService";
 
 // Profil eylemleri
 const profileActions = [
-  { icon: User, label: "Edit Profile", subtitle: "Update your personal information", onPress: () => console.log("Edit Profile") },
-  { icon: Crown, label: "Premium Features", subtitle: "Manage your subscription", onPress: () => console.log("Premium Features"), premium: true },
-  { icon: Heart, label: "Favorite Dreams", subtitle: "View your saved dreams", onPress: () => console.log("Favorite Dreams") },
-  { icon: Settings, label: "Settings", subtitle: "App preferences and notifications", onPress: () => console.log("Settings") },
-  { icon: Share2, label: "Share App", subtitle: "Invite friends to Dream Visualizer", onPress: () => console.log("Share App") },
-  { icon: Star, label: "Rate App", subtitle: "Leave a review in the App Store", onPress: () => console.log("Rate App") },
-  { icon: HelpCircle, label: "Help & Support", subtitle: "Get help and contact support", onPress: () => console.log("Help & Support") },
+  {
+    icon: User,
+    label: "Edit Profile",
+    subtitle: "Update your personal information",
+    onPress: (navigation) => navigation.navigate("EditProfile"),
+  },
+  {
+    icon: Crown,
+    label: "Premium Features",
+    subtitle: "Manage your subscription",
+    onPress: (navigation) => navigation.navigate("Paywall"),
+    premium: true
+  },
+
+  {
+    icon: Settings,
+    label: "Settings",
+    subtitle: "App preferences and notifications",
+    onPress: (navigation) => navigation.navigate("Settings")
+  },
+
+  {
+    icon: Share2,
+    label: "Share App",
+    subtitle: "Invite friends to Dream Visualizer",
+    onPress: () => console.log("Share App")
+  },
+
 ];
+
 
 export default function ProfileScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -36,20 +58,20 @@ export default function ProfileScreen({ navigation }) {
   if (!fontsLoaded) return null;
 
   const handleSignOut = async () => {
-    const confirmed = Platform.OS === 'web' 
+    const confirmed = Platform.OS === 'web'
       ? window.confirm("Are you sure you want to sign out?")
       : await new Promise((resolve) => {
-          Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-            { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
-            { text: "Sign Out", style: "destructive", onPress: () => resolve(true) },
-          ]);
-        });
+        Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+          { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+          { text: "Sign Out", style: "destructive", onPress: () => resolve(true) },
+        ]);
+      });
 
     if (!confirmed) return;
 
     try {
       await logout();
-      
+
       navigation.reset({
         index: 0,
         routes: [{ name: "Login" }],
@@ -68,7 +90,18 @@ export default function ProfileScreen({ navigation }) {
     return (
       <TouchableOpacity
         key={action.label}
-        onPress={action.onPress}
+        onPress={() => {
+          if (action.label === "Premium Features") {
+            navigation.navigate("Paywall");
+          } else if (action.label === "Settings") {
+            navigation.navigate("Settings");
+          } else if (action.label === "Edit Profile") {
+            navigation.navigate("EditProfile");
+          }
+          else {
+            action.onPress?.();
+          }
+        }}
         style={[styles.actionItem, { borderColor: action.premium ? "#667eea" : "rgba(255, 255, 255, 0.2)" }]}
       >
         <View style={[styles.actionIconContainer, { backgroundColor: action.premium ? "#667eea" : "rgba(255, 255, 255, 0.2)" }]}>
@@ -83,13 +116,15 @@ export default function ProfileScreen({ navigation }) {
     );
   };
 
+
   return (
     <LinearGradient
-      colors={isDark ? ["#1a1a2e", "#16213e", "#0f1419"] : ["#667eea", "#764ba2", "#f093fb"]}
+      colors={["#1a1a2e", "#16213e", "#0f3460"]}
       style={{ flex: 1 }}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
     >
+
       <StatusBar style="light" />
       <View style={{ paddingTop: insets.top + 16, paddingHorizontal: 20, paddingBottom: 16 }}>
         <Text style={styles.headerTitle}>Profile</Text>
@@ -133,6 +168,7 @@ export default function ProfileScreen({ navigation }) {
     </LinearGradient>
   );
 }
+
 
 const styles = StyleSheet.create({
   headerTitle: { fontSize: 28, fontFamily: "Inter_600SemiBold", color: "#FFFFFF" },
