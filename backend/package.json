@@ -22,7 +22,8 @@
     "hono": "^4.0.0",
     "multer": "^2.0.2",
     "openai": "^4.20.0",
-    "postgres": "^3.4.3"
+    "postgres": "^3.4.3",
+    "react-native-dotenv": "^3.4.11"
   },
   "devDependencies": {
     "@types/bun": "latest",

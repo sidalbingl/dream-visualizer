@@ -23,22 +23,59 @@ const { width } = Dimensions.get("window");
 const onboardingData = [
   {
     icon: Cloud,
-    title: "Record Your Dreams",
-    description: "Capture your dreams through text or voice recordings",
+    title: "Describe or Speak Your Dream",
+    description: "Type freely or use instant voice-to-text to capture your dream.",
+    features: [
+      "Fast speech-to-text transcription",
+      "Multilingual input support",
+      "Edit before generating",
+    ],
     colors: ["#667eea", "#764ba2"],
   },
   {
     icon: Sparkles,
-    title: "See AI Animation",
-    description:
-      "Watch your dreams come to life with beautiful AI-generated visuals",
+    title: "AI Visualizes Your Dream",
+    description: "See your dream as stunning AI visuals.",
+    features: [
+      "Image generation for everyone",
+      "Premium: cinematic AI video",
+      "Style presets (realistic, anime, surreal...)",
+    ],
+    badge: "PREMIUM",
     colors: ["#f093fb", "#f5576c"],
   },
   {
     icon: Moon,
-    title: "Get Interpretation",
-    description: "Discover the hidden meanings behind your dreams",
+    title: "AI Dream Interpretation",
+    description: "Understand symbolism and themes with rich AI commentary.",
+    features: [
+      "Concise, readable insights",
+      "Deeper analysis for premium",
+      "Shareable summary",
+    ],
     colors: ["#4facfe", "#00f2fe"],
+  },
+  {
+    icon: Cloud,
+    title: "Favorites & Secure Cloud Sync",
+    description: "Save the best dreams and access them anywhere.",
+    features: [
+      "Saved per user in Firestore",
+      "Title by date + automatic summary",
+      "Media + AI comment in detail view",
+    ],
+    colors: ["#22c1c3", "#fdbb2d"],
+  },
+  {
+    icon: Sparkles,
+    title: "Ready to Dream Big?",
+    description: "Create your account to start visualizing and interpreting.",
+    features: [
+      "Free tier: AI images + analysis",
+      "Premium: video + advanced insights",
+      "Private by design",
+    ],
+    colors: ["#8EC5FC", "#E0C3FC"],
   },
 ];
 
@@ -68,12 +105,12 @@ export default function OnboardingScreen({ navigation }) {
       });
       setCurrentIndex(nextIndex);
     } else {
-      navigation.replace("MainTabs");
+      navigation.reset({ index: 0, routes: [{ name: "Register" }] });
     }
   };
 
   const handleSkip = () => {
-    navigation.replace("MainTabs");
+    navigation.reset({ index: 0, routes: [{ name: "Register" }] });
   };
 
   const handleScroll = (event) => {
@@ -178,11 +215,38 @@ export default function OnboardingScreen({ navigation }) {
                   color: "rgba(255, 255, 255, 0.9)",
                   textAlign: "center",
                   lineHeight: 26,
-                  marginBottom: 60,
+                  marginBottom: item?.features ? 16 : 60,
                 }}
               >
                 {item.description}
               </Text>
+
+              {/* Optional Badge */}
+              {item?.badge ? (
+                <View style={{
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                  borderColor: "rgba(255,255,255,0.35)",
+                  borderWidth: 1,
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                  borderRadius: 8,
+                  marginBottom: 10,
+                }}>
+                  <Text style={{ color: "#fff", fontFamily: "Inter_500Medium", fontSize: 12 }}>{item.badge}</Text>
+                </View>
+              ) : null}
+
+              {/* Feature bullets */}
+              {item?.features ? (
+                <View style={{ width: "100%", marginBottom: 36 }}>
+                  {item.features.map((f, i2) => (
+                    <View key={i2} style={{ flexDirection: "row", alignItems: "flex-start", marginTop: 8 }}>
+                      <Text style={{ color: "#fff", fontSize: 14, marginRight: 8 }}>•</Text>
+                      <Text style={{ color: "#fff", fontSize: 14, flex: 1, opacity: 0.9 }}>{f}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
             </View>
           );
         })}
@@ -243,7 +307,7 @@ export default function OnboardingScreen({ navigation }) {
             }}
           >
             {currentIndex === onboardingData.length - 1
-              ? "Get Started"
+              ? "Create Account"
               : "Next"}
           </Text>
           <ArrowRight size={20} color="#FFFFFF" />

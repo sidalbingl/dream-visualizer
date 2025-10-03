@@ -18,6 +18,7 @@ import OnboardingScreen from './src/screens/OnboardingScreen';
 import DreamInputScreen from './src/screens/DreamInputScreen';
 import VisualizationScreen from './src/screens/VisualizationScreen';
 import FavoritesScreen from './src/screens/FavoritesScreen';
+import FavoriteDetailScreen from './src/screens/FavoriteDetailScreen';
 import PaywallScreen from './src/screens/PaywallScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import GalleryScreen from './src/screens/GalleryScreen';
@@ -121,6 +122,7 @@ export default function App() {
               <Stack.Screen name="MainTabs" component={MainTabs} />
               <Stack.Screen name="Visualization" component={VisualizationScreen} />
               <Stack.Screen name="Favorites" component={FavoritesScreen} />
+              <Stack.Screen name="FavoriteDetail" component={FavoriteDetailScreen} />
             </Stack.Navigator>
           </NavigationContainer>
         </UserProvider>

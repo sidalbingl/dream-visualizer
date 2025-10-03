@@ -2,36 +2,48 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { onSnapshot, collection, orderBy, query, deleteDoc, doc } from 'firebase/firestore';
+import { auth, db } from '../firebaseConfig';
+import { useIsFocused } from '@react-navigation/native';
 
 const FavoritesScreen = ({ navigation }) => {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadFavorites();
-  }, []);
+  const isFocused = useIsFocused();
 
-  const loadFavorites = async () => {
-    try {
-      const storedFavorites = await AsyncStorage.getItem('favorites');
-      if (storedFavorites) {
-        setFavorites(JSON.parse(storedFavorites));
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to load favorites');
-    } finally {
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) {
       setLoading(false);
+      return;
     }
-  };
+
+    const q = query(
+      collection(db, 'users', user.uid, 'dreams'),
+      orderBy('date', 'desc')
+    );
+    const unsub = onSnapshot(q, (snap) => {
+      const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setFavorites(items);
+      setLoading(false);
+    }, (err) => {
+      console.error('favorites snapshot error', err);
+      setLoading(false);
+      Alert.alert('Error', 'Failed to load favorites');
+    });
+
+    return () => unsub();
+  }, [isFocused]);
 
   const removeFavorite = async (id) => {
     try {
-      const updatedFavorites = favorites.filter(fav => fav.id !== id);
-      setFavorites(updatedFavorites);
-      await AsyncStorage.setItem('favorites', JSON.stringify(updatedFavorites));
+      const user = auth.currentUser;
+      if (!user) return;
+      await deleteDoc(doc(db, 'users', user.uid, 'dreams', id));
       Alert.alert('Removed', 'Dream removed from favorites');
     } catch (error) {
+      console.error('remove favorite error', error);
       Alert.alert('Error', 'Failed to remove favorite');
     }
   };
@@ -59,18 +71,13 @@ const FavoritesScreen = ({ navigation }) => {
   const renderFavoriteItem = ({ item }) => (
     <TouchableOpacity
       style={styles.favoriteItem}
-      onPress={() => navigation.navigate('Visualization', {
-        dreamText: item.dreamText,
-        style: item.style,
-        timestamp: item.timestamp,
-        isFromFavorites: true
-      })}
+      onPress={() => navigation.navigate('FavoriteDetail', { item })}
     >
-      <Image source={{ uri: item.imageUrl }} style={styles.favoriteImage} />
+      <Image source={{ uri: item.posterUrl || item.mediaUrl }} style={styles.favoriteImage} />
       
       <View style={styles.favoriteContent}>
         <View style={styles.favoriteHeader}>
-          <Text style={styles.favoriteDate}>{formatDate(item.createdAt)}</Text>
+          <Text style={styles.favoriteDate}>{item.titleDate || formatDate(item?.date?.toDate?.() || new Date())}</Text>
           <TouchableOpacity
             style={styles.removeButton}
             onPress={() => removeFavorite(item.id)}
@@ -80,13 +87,13 @@ const FavoritesScreen = ({ navigation }) => {
         </View>
         
         <Text style={styles.favoriteText} numberOfLines={2}>
-          "{item.dreamText}"
+          {item.summary || item.dreamText}
         </Text>
         
         <View style={styles.favoriteFooter}>
           <View style={styles.styleInfo}>
-            <Text style={styles.styleIcon}>{getStyleIcon(item.style)}</Text>
-            <Text style={styles.styleText}>{item.style.charAt(0).toUpperCase() + item.style.slice(1)}</Text>
+            <Text style={styles.styleIcon}>{item.mediaType === 'video' ? '🎬' : '🖼'}</Text>
+            <Text style={styles.styleText}>{item.mediaType === 'video' ? 'Video' : 'Image'}</Text>
           </View>
           
           <View style={styles.commentPreview}>

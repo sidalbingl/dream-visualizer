@@ -13,6 +13,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../firebaseConfig';
 import { Video } from 'expo-av';
 import { useUser } from '../context/UserContext';
 
@@ -190,26 +192,41 @@ const VisualizationScreen = ({ navigation, route }) => {
 
   const handleSaveToFavorites = async () => {
     try {
-      const dreamData = {
-        id: Date.now().toString(),
+      const user = auth.currentUser;
+      if (!user) {
+        Alert.alert('Login required', 'Please login to save favorites');
+        return;
+      }
+
+      if (!generatedMedia || !aiComment) {
+        Alert.alert('Please wait', 'Media and AI comment must be ready');
+        return;
+      }
+
+      const summary = dreamText.length > 120 ? `${dreamText.slice(0, 117)}...` : dreamText;
+      const titleDate = new Date().toLocaleDateString('tr-TR', {
+        year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+
+      const payload = {
         dreamText,
-        style,
-        timestamp,
-        mediaUrl: generatedMedia?.url,
+        mediaType: generatedMedia.type === 'video' ? 'video' : 'image',
+        mediaUrl: generatedMedia.url,
         aiComment,
-        createdAt: new Date().toISOString(),
-        type: generatedMedia?.type,
+        summary,
+        posterUrl: generatedMedia.type === 'image' ? generatedMedia.url : '',
+        titleDate,
+        date: serverTimestamp(),
       };
 
-      const existingFavorites = await AsyncStorage.getItem('favorites');
-      const favorites = existingFavorites ? JSON.parse(existingFavorites) : [];
-      favorites.push(dreamData);
-
-      await AsyncStorage.setItem('favorites', JSON.stringify(favorites));
+      await addDoc(collection(db, 'users', user.uid, 'dreams'), payload);
       setIsFavorite(true);
-      Alert.alert('Saved!', 'Dream added to your favorites');
+      Alert.alert('Kaydedildi', 'Rüya favorilere eklendi');
+      // Kaydedildikten sonra Favoriler'e git
+      navigation.navigate('Favorites');
     } catch (error) {
-      Alert.alert('Error', 'Failed to save to favorites');
+      console.error('Save favorite error:', error);
+      Alert.alert('Hata', 'Favorilere kaydedilemedi');
     }
   };
 

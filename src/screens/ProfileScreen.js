@@ -68,7 +68,13 @@ export default function ProfileScreen({ navigation }) {
     return (
       <TouchableOpacity
         key={action.label}
-        onPress={action.onPress}
+        onPress={() => {
+          if (action.label === "Favorite Dreams") {
+            navigation.navigate("Favorites"); // 🔥 Favoriler sayfasına yönlendirme
+          } else {
+            action.onPress();
+          }
+        }}
         style={[styles.actionItem, { borderColor: action.premium ? "#667eea" : "rgba(255, 255, 255, 0.2)" }]}
       >
         <View style={[styles.actionIconContainer, { backgroundColor: action.premium ? "#667eea" : "rgba(255, 255, 255, 0.2)" }]}>
@@ -99,8 +105,8 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.avatar}>
             <Moon size={40} color="#FFFFFF" />
           </View>
-          <Text style={styles.profileName}>Dream Explorer</Text>
-          <Text style={styles.profileEmail}>dreamer@example.com</Text>
+          <Text style={styles.profileName}>Damla Alper</Text>
+          <Text style={styles.profileEmail}>damlanur20@gmail.com</Text>
           <View style={styles.statsContainer}>
             <View style={styles.stat}>
               <Text style={styles.statNumber}>12</Text>
