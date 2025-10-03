@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   Share,
+  ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
@@ -21,10 +22,13 @@ const VisualizationScreen = ({ navigation, route }) => {
   const [isGenerating, setIsGenerating] = useState(true);
   const [generatedMedia, setGeneratedMedia] = useState(null);
   const [aiComment, setAiComment] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
 
   const { isPremium } = useUser();
+
+  const BASE_URL = "https://pectous-equicontinuous-alec.ngrok-free.dev";
 
   useEffect(() => {
     generateVisualization();
@@ -50,6 +54,7 @@ const VisualizationScreen = ({ navigation, route }) => {
       clearInterval(progressInterval);
       setGenerationProgress(100);
 
+      // Görselleştirme tamamlandıktan sonra rüya yorumunu al
       await generateAIComment();
 
       setIsGenerating(false);
@@ -63,9 +68,7 @@ const VisualizationScreen = ({ navigation, route }) => {
     try {
       console.log("🚀 Generation başlıyor...");
       console.log("💎 Premium:", isPremium);
-      
-      // URL'yi doğru şekilde oluştur (sonunda slash olmamalı)
-      const BASE_URL = "https://pectous-equicontinuous-alec.ngrok-free.dev";
+
       const endpoint = isPremium ? "/api/generate-video" : "/api/generate-image";
       const API_URL = BASE_URL + endpoint;
 
@@ -82,29 +85,22 @@ const VisualizationScreen = ({ navigation, route }) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "ngrok-skip-browser-warning": "69420",
+          "ngrok-skip-browser-warning": "true",
           "Accept": "application/json",
         },
         body: JSON.stringify(requestBody),
       });
 
       console.log("📡 Response status:", res.status);
-      console.log("📡 Response headers:", {
-        contentType: res.headers.get("content-type"),
-        status: res.status,
-      });
 
-      // İlk önce text olarak oku
       const responseText = await res.text();
       console.log("📄 Response text (ilk 500 karakter):", responseText.substring(0, 500));
 
-      // JSON parse et
       let data;
       try {
         data = JSON.parse(responseText);
       } catch (parseError) {
         console.error("❌ JSON parse hatası:", parseError);
-        console.error("❌ Response text:", responseText);
         throw new Error("Server JSON yerine HTML döndürdü. Ngrok URL'nizi kontrol edin.");
       }
 
@@ -116,37 +112,79 @@ const VisualizationScreen = ({ navigation, route }) => {
 
       if (isPremium) {
         if (!data.videoUrl) {
-          console.error("❌ Video URL yok:", data);
           throw new Error("No video URL returned");
         }
         console.log("🎬 Video URL:", data.videoUrl);
         setGeneratedMedia({ type: "video", url: data.videoUrl });
       } else {
         if (!data.imageUrl) {
-          console.error("❌ Image URL yok:", data);
           throw new Error("No image URL returned");
         }
-        console.log("🖼️ Image URL:", data.imageUrl);
+        console.log("🖼 Image URL:", data.imageUrl);
         setGeneratedMedia({ type: "image", url: data.imageUrl });
       }
-      
+
     } catch (err) {
       console.error("❌ Generation error:", err.message);
-      console.error("❌ Full error:", err);
       throw err;
     }
   };
 
   const generateAIComment = async () => {
-    if (isPremium) {
-      const premiumComments = [
-        "Premium uzun yorum: Bu rüya bilinçaltındaki özgürlük arzusunu derinlemesine gösteriyor.",
-        "Premium uzun yorum: Hayatında yeni bir dönüşüm dönemi yaşıyorsun.",
-        "Premium uzun yorum: Yaratıcılığın yükseliyor, bu rüya hayal gücünün güçlü işaretlerini taşıyor."
-      ];
-      setAiComment(premiumComments[Math.floor(Math.random() * premiumComments.length)]);
-    } else {
-      setAiComment("Standart kısa yorum: Bu rüya özgürlük arayışını gösteriyor.");
+    try {
+      setIsAnalyzing(true);
+      console.log("🔮 Rüya yorumlama başlıyor...");
+
+      const API_URL = `${BASE_URL}/api/analyze-dream`;
+
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          dreamText: dreamText,
+          isPremium: isPremium,
+        }),
+      });
+
+      const responseText = await res.text();
+      console.log("📄 Analysis response:", responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("❌ JSON parse hatası:", parseError);
+        throw new Error("Server JSON yerine HTML döndürdü");
+      }
+
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+
+      if (!data.analysis) {
+        throw new Error("No analysis returned");
+      }
+
+      console.log("✅ Rüya yorumu alındı");
+      console.log("📝 Yorum uzunluğu:", data.wordCount, "kelime");
+
+      setAiComment(data.analysis);
+      setIsAnalyzing(false);
+
+    } catch (err) {
+      console.error("❌ Analysis error:", err.message);
+      setIsAnalyzing(false);
+
+      // Fallback yorum (API hatası durumunda)
+      if (isPremium) {
+        setAiComment("Premium rüya yorumu alınamadı. Lütfen tekrar deneyin veya bağlantınızı kontrol edin.");
+      } else {
+        setAiComment("Rüya yorumu alınamadı. Lütfen tekrar deneyin.");
+      }
     }
   };
 
@@ -178,7 +216,7 @@ const VisualizationScreen = ({ navigation, route }) => {
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Check out my dream visualization: "${dreamText}"`,
+        message: `Check out my dream visualization: "${dreamText}"\n\nAI Analysis: ${aiComment.substring(0, 100)}...`,
         title: 'My Dream Visualization',
       });
     } catch (error) {
@@ -221,7 +259,7 @@ const VisualizationScreen = ({ navigation, route }) => {
       </View>
 
       {/* Content */}
-      <View style={styles.content}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Dream Text */}
         <View style={styles.dreamContainer}>
           <Text style={styles.dreamLabel}>Your Dream</Text>
@@ -269,10 +307,29 @@ const VisualizationScreen = ({ navigation, route }) => {
           </View>
         )}
 
-        {/* AI Comment */}
-        {aiComment && !isGenerating && (
+        {/* AI Comment Loading */}
+        {isAnalyzing && (
           <View style={styles.commentContainer}>
-            <Text style={styles.commentLabel}>AI Dream Analysis</Text>
+            <ActivityIndicator size="small" color="#6366f1" />
+            <Text style={styles.analyzingText}>
+              {isPremium ? "Analyzing your dream deeply..." : "Analyzing your dream..."}
+            </Text>
+          </View>
+        )}
+
+        {/* AI Comment */}
+        {aiComment && !isAnalyzing && (
+          <View style={styles.commentContainer}>
+            <View style={styles.commentHeader}>
+              <Text style={styles.commentLabel}>
+                {isPremium ? "🔮 Premium Dream Analysis" : "💭 Dream Analysis"}
+              </Text>
+              {isPremium && (
+                <View style={styles.premiumBadge}>
+                  <Text style={styles.premiumBadgeText}>PREMIUM</Text>
+                </View>
+              )}
+            </View>
             <Text style={styles.commentText}>{aiComment}</Text>
           </View>
         )}
@@ -294,7 +351,7 @@ const VisualizationScreen = ({ navigation, route }) => {
             </TouchableOpacity>
           </View>
         )}
-      </View>
+      </ScrollView>
     </LinearGradient>
   );
 };
@@ -367,9 +424,37 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  commentLabel: { fontSize: 16, fontWeight: 'bold', color: 'white', marginBottom: 12 },
-  commentText: { fontSize: 14, color: 'rgba(255, 255, 255, 0.9)', lineHeight: 20 },
-  actionContainer: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 20 },
+  commentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  commentLabel: { fontSize: 16, fontWeight: 'bold', color: 'white' },
+  premiumBadge: {
+    backgroundColor: '#6366f1',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  premiumBadgeText: { fontSize: 10, fontWeight: 'bold', color: 'white' },
+  commentText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    lineHeight: 22,
+  },
+  analyzingText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
+    marginTop: 12,
+  },
+  actionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 20,
+    paddingBottom: 40,
+  },
   regenerateButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 12,
