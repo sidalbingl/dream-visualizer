@@ -90,6 +90,7 @@ export default function ProfileScreen({ navigation }) {
     return (
       <TouchableOpacity
         key={action.label}
+       
         onPress={() => {
           if (action.label === "Premium Features") {
             navigation.navigate("Paywall");
@@ -97,6 +98,8 @@ export default function ProfileScreen({ navigation }) {
             navigation.navigate("Settings");
           } else if (action.label === "Edit Profile") {
             navigation.navigate("EditProfile");
+          } else if (action.label === "Favorite Dreams") {
+            navigation.navigate("Favorites");
           }
           else {
             action.onPress?.();
@@ -134,8 +137,8 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.avatar}>
             <Moon size={40} color="#FFFFFF" />
           </View>
-          <Text style={styles.profileName}>Dream Explorer</Text>
-          <Text style={styles.profileEmail}>dreamer@example.com</Text>
+          <Text style={styles.profileName}>Damla Alper</Text>
+          <Text style={styles.profileEmail}>damlanur20@gmail.com</Text>
           <View style={styles.statsContainer}>
             <View style={styles.stat}>
               <Text style={styles.statNumber}>12</Text>

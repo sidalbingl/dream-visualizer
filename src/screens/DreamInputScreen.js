@@ -176,7 +176,7 @@ export default function DreamInputScreen({ navigation }) {
         <StatusBar style="light" />
 
         {/* Header */}
-        <View style={{ paddingTop: insets.top + 16, paddingHorizontal: 20, paddingBottom: 16 }}>
+        <View style={{ paddingTop: insets.top + 16, paddingHorizontal: 40, paddingBottom: 40 }}>
           <Text style={{ fontSize: 28, fontFamily: "Inter_600SemiBold", color: "#FFFFFF", textAlign: "center" }}>
             Dream Visualizer
           </Text>
