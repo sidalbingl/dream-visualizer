@@ -214,16 +214,30 @@ const VisualizationScreen = ({ navigation, route }) => {
         mediaUrl: generatedMedia.url,
         aiComment,
         summary,
-        posterUrl: generatedMedia.type === 'image' ? generatedMedia.url : '',
+        posterUrl: generatedMedia.url, // ✅ Her durumda mediaUrl'yi posterUrl olarak kullan
         titleDate,
         date: serverTimestamp(),
+        isFavorite: false, 
       };
 
       await addDoc(collection(db, 'users', user.uid, 'dreams'), payload);
       setIsFavorite(true);
-      Alert.alert('Kaydedildi', 'Rüya favorilere eklendi');
-      // Kaydedildikten sonra Favoriler'e git
-      navigation.navigate('Favorites');
+      
+      Alert.alert(
+        'Kaydedildi', 
+        'Rüya favorilere eklendi',
+        [
+          {
+            text: 'Tamam',
+            onPress: () => {
+              // ✅ MainTabs içindeki Gallery tab'ine git
+              navigation.navigate('MainTabs', { 
+                screen: 'Gallery' 
+              });
+            }
+          }
+        ]
+      );
     } catch (error) {
       console.error('Save favorite error:', error);
       Alert.alert('Hata', 'Favorilere kaydedilemedi');
@@ -362,6 +376,7 @@ const VisualizationScreen = ({ navigation, route }) => {
             <TouchableOpacity
               style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]}
               onPress={handleSaveToFavorites}
+              disabled={isFavorite}
             >
               <Text style={styles.favoriteIcon}>{isFavorite ? '❤️' : '🤍'}</Text>
               <Text style={styles.favoriteText}>{isFavorite ? 'Saved' : 'Save'}</Text>

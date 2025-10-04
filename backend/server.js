@@ -12,17 +12,19 @@ import Groq from "groq-sdk";
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename); // ✅ düzeltildi
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// CORS düzeltmesi - ngrok için özel ayar
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning'],
-  credentials: true
-}));
+// CORS ayarları
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "ngrok-skip-browser-warning"],
+    credentials: true,
+  })
+);
 
 // Body Parser
 app.use(express.json());
@@ -33,20 +35,17 @@ if (!process.env.FAL_KEY) {
   console.error("❌ FAL_KEY bulunamadı! .env dosyasını kontrol edin.");
   process.exit(1);
 }
-
 console.log("✅ FAL_KEY yüklendi:", process.env.FAL_KEY.substring(0, 10) + "...");
 
-// Fal.ai client'ı yapılandır
+// Fal.ai client yapılandırması
 fal.config({
   credentials: process.env.FAL_KEY,
 });
-
 
 // Groq client
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
-
 
 // Upload klasörü
 const uploadDir = path.join(__dirname, "uploads");
@@ -60,7 +59,7 @@ const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, uploadDir),
   filename: (_, file, cb) => {
     const ext = path.extname(file.originalname) || ".m4a";
-    const name = `rec_${Date.now()}${ext}`; // ✅ düzeltildi
+    const name = `rec_${Date.now()}${ext}`;
     cb(null, name);
   },
 });
@@ -73,9 +72,7 @@ const upload = multer({
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
 
-    if (mimetype || extname) {
-      return cb(null, true);
-    }
+    if (mimetype || extname) return cb(null, true);
     cb(new Error("Sadece ses dosyaları yüklenebilir!"));
   },
 });
@@ -83,17 +80,17 @@ const upload = multer({
 // Statik servis
 app.use("/uploads", express.static(uploadDir));
 
-// Upload endpoint
+/* -------------------------------
+   📤 Upload Endpoint
+--------------------------------*/
 app.post("/api/upload", upload.single("audio"), (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: "Dosya bulunamadı" });
-    }
+    if (!req.file) return res.status(400).json({ error: "Dosya bulunamadı" });
 
     console.log("📤 Dosya yüklendi:", req.file.filename);
 
-    const baseUrl = process.env.NGROK_URL || `${req.protocol}://${req.get("host")}`; // ✅ düzeltildi
-    const publicUrl = `${baseUrl}/uploads/${req.file.filename}`; // ✅ düzeltildi
+    const baseUrl = process.env.NGROK_URL || `${req.protocol}://${req.get("host")}`;
+    const publicUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
     console.log("🔗 Public URL:", publicUrl);
 
@@ -109,34 +106,30 @@ app.post("/api/upload", upload.single("audio"), (req, res) => {
   }
 });
 
-// Fal.ai STT endpoint
+/* -------------------------------
+   🎤 Fal.ai STT Endpoint
+--------------------------------*/
 app.post("/api/stt", async (req, res) => {
   try {
     const { audio_url } = req.body;
-
-    if (!audio_url) {
-      return res.status(400).json({ error: "audio_url gerekli" });
-    }
+    if (!audio_url) return res.status(400).json({ error: "audio_url gerekli" });
 
     console.log("🎤 STT başlatılıyor...");
     console.log("🔗 Audio URL:", audio_url);
 
     let falAudioUrl = audio_url;
 
-    if (audio_url.includes('localhost') || audio_url.includes('ngrok')) {
+    if (audio_url.includes("localhost") || audio_url.includes("ngrok")) {
       console.log("📦 Local dosya tespit edildi, Fal.ai'a yükleniyor...");
 
       const filename = path.basename(new URL(audio_url).pathname);
       const filePath = path.join(uploadDir, filename);
-
       console.log("📍 Dosya yolu:", filePath);
 
-      if (!fs.existsSync(filePath)) {
-        throw new Error("Dosya bulunamadı: " + filePath);
-      }
+      if (!fs.existsSync(filePath)) throw new Error("Dosya bulunamadı: " + filePath);
 
       const fileBuffer = fs.readFileSync(filePath);
-      const fileBlob = new Blob([fileBuffer], { type: 'audio/m4a' });
+      const fileBlob = new Blob([fileBuffer], { type: "audio/m4a" });
 
       console.log("☁ Fal.ai storage'a yükleniyor...");
       falAudioUrl = await fal.storage.upload(fileBlob);
@@ -152,9 +145,7 @@ app.post("/api/stt", async (req, res) => {
         version: "3",
       },
       logs: true,
-      onQueueUpdate: (update) => {
-        console.log("📊 Queue update:", update.status);
-      },
+      onQueueUpdate: (update) => console.log("📊 Queue update:", update.status),
     });
 
     console.log("✅ STT tamamlandı");
@@ -174,17 +165,16 @@ app.post("/api/stt", async (req, res) => {
   }
 });
 
-// Fal.ai Görsel oluşturma endpoint
+/* -------------------------------
+   🎨 Görsel Oluşturma Endpoint
+--------------------------------*/
 app.post("/api/generate-image", async (req, res) => {
   console.log("🎨 /api/generate-image endpoint'e istek geldi");
   console.log("📦 Request body:", req.body);
 
   try {
     const { prompt, isPremium = false } = req.body;
-
-    if (!prompt) {
-      return res.status(400).json({ error: "prompt gerekli" });
-    }
+    if (!prompt) return res.status(400).json({ error: "prompt gerekli" });
 
     console.log("🎨 Görsel oluşturma başlıyor...");
     console.log("📝 Prompt:", prompt);
@@ -200,9 +190,7 @@ app.post("/api/generate-image", async (req, res) => {
         num_images: 1,
       },
       logs: true,
-      onQueueUpdate: (update) => {
-        console.log("📊 Queue update:", update.status);
-      },
+      onQueueUpdate: (update) => console.log("📊 Queue update:", update.status),
     });
 
     const imageUrl =
@@ -211,9 +199,8 @@ app.post("/api/generate-image", async (req, res) => {
       result.image?.url ||
       result.url;
 
-    if (!imageUrl) {
+    if (!imageUrl)
       return res.status(500).json({ error: "Görsel URL'si alınamadı", debug: result });
-    }
 
     return res.status(200).json({
       success: true,
@@ -221,7 +208,6 @@ app.post("/api/generate-image", async (req, res) => {
       model: modelName,
       isPremium,
     });
-
   } catch (error) {
     console.error("❌ Görsel oluşturma hatası:", error.message);
     return res.status(500).json({
@@ -231,17 +217,16 @@ app.post("/api/generate-image", async (req, res) => {
   }
 });
 
-// Video oluşturma endpoint
+/* -------------------------------
+   🎬 Video Oluşturma Endpoint
+--------------------------------*/
 app.post("/api/generate-video", async (req, res) => {
   console.log("🎬 /api/generate-video endpoint'e istek geldi");
   console.log("📦 Request body:", req.body);
 
   try {
     const { prompt } = req.body;
-
-    if (!prompt) {
-      return res.status(400).json({ error: "prompt gerekli" });
-    }
+    if (!prompt) return res.status(400).json({ error: "prompt gerekli" });
 
     console.log("🎬 Video oluşturma başlıyor...");
     console.log("📝 Prompt:", prompt);
@@ -253,9 +238,7 @@ app.post("/api/generate-video", async (req, res) => {
         resolution: "720p",
       },
       logs: true,
-      onQueueUpdate: (update) => {
-        console.log("📊 Queue update:", update.status);
-      },
+      onQueueUpdate: (update) => console.log("📊 Queue update:", update.status),
     });
 
     const videoUrl =
@@ -264,16 +247,14 @@ app.post("/api/generate-video", async (req, res) => {
       result.output?.[0]?.url ||
       result.url;
 
-    if (!videoUrl) {
+    if (!videoUrl)
       return res.status(500).json({ error: "Video URL alınamadı", debug: result });
-    }
 
     return res.status(200).json({
       success: true,
       videoUrl,
       model: "fal-ai/pixverse/v5/text-to-video",
     });
-
   } catch (error) {
     console.error("❌ Video oluşturma hatası:", error.message);
     return res.status(500).json({
@@ -283,17 +264,17 @@ app.post("/api/generate-video", async (req, res) => {
   }
 });
 
-// Rüya yorumlama endpoint'i (/api/generate-video endpoint'inden sonra ekleyin)
+/* -------------------------------
+   🔮 Rüya Yorumlama Endpoint
+--------------------------------*/
 app.post("/api/analyze-dream", async (req, res) => {
   console.log("🔮 /api/analyze-dream endpoint'e istek geldi");
   console.log("📦 Request body:", req.body);
 
   try {
     const { dreamText, isPremium = false } = req.body;
-
-    if (!dreamText || !dreamText.trim()) {
+    if (!dreamText || !dreamText.trim())
       return res.status(400).json({ error: "dreamText gerekli" });
-    }
 
     console.log("🔮 Rüya yorumlama başlıyor...");
     console.log("📝 Dream text:", dreamText);
@@ -301,7 +282,8 @@ app.post("/api/analyze-dream", async (req, res) => {
 
     // Prompt'u premium durumuna göre ayarla
     const systemPrompt = isPremium
-      ? `Sen profesyonel bir rüya yorumcususun. Kullanıcının rüyasını derinlemesine analiz et ve detaylı bir yorum yap. Yorumun şunları içermeli:
+      ? `Sen profesyonel bir rüya yorumcususun. Kullanıcının rüyasını derinlemesine analiz et ve detaylı bir yorum yap.
+Yorumun şunları içermeli:
 
 1. **Genel Anlam**: Rüyanın genel mesajı ve ne anlama geldiği
 2. **Semboller**: Rüyada geçen önemli sembollerin psikolojik anlamları
@@ -310,19 +292,13 @@ app.post("/api/analyze-dream", async (req, res) => {
 5. **Öneriler**: Rüyadan çıkarılabilecek dersler ve öneriler
 
 Yorumun 200-300 kelime arasında, empatik, anlayışlı ve içgörü dolu olsun.`
-      : `Sen bir rüya yorumcususun. Kullanıcının rüyasını kısa ve öz bir şekilde yorumla. 
+      : `Sen bir rüya yorumcususun. Kullanıcının rüyasını kısa ve öz bir şekilde yorumla.
 Yorumun 50-80 kelime arasında olsun ve rüyanın temel anlamını açıkla.`;
 
     const chatCompletion = await groq.chat.completions.create({
       messages: [
-        {
-          role: "system",
-          content: systemPrompt,
-        },
-        {
-          role: "user",
-          content: `Lütfen şu rüyayı yorumla: "${dreamText}"`,
-        },
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `Lütfen şu rüyayı yorumla: "${dreamText}"` },
       ],
       model: "llama-3.3-70b-versatile",
       temperature: 0.7,
@@ -330,10 +306,7 @@ Yorumun 50-80 kelime arasında olsun ve rüyanın temel anlamını açıkla.`;
     });
 
     const analysis = chatCompletion.choices[0]?.message?.content;
-
-    if (!analysis) {
-      throw new Error("Groq API'den yanıt alınamadı");
-    }
+    if (!analysis) throw new Error("Groq API'den yanıt alınamadı");
 
     console.log("✅ Rüya yorumu oluşturuldu");
     console.log("📝 Yorum uzunluğu:", analysis.length, "karakter");
@@ -345,7 +318,6 @@ Yorumun 50-80 kelime arasında olsun ve rüyanın temel anlamını açıkla.`;
       model: "llama-3.3-70b-versatile",
       wordCount: analysis.split(/\s+/).length,
     });
-
   } catch (error) {
     console.error("❌ Rüya yorumlama hatası:", error.message);
     return res.status(500).json({
@@ -355,13 +327,14 @@ Yorumun 50-80 kelime arasında olsun ve rüyanın temel anlamını açıkla.`;
   }
 });
 
-// Test endpoint
+/* -------------------------------
+   🧪 Test & Health Check
+--------------------------------*/
 app.get("/api/test", async (req, res) => {
   try {
     const testUrl = req.query.url;
-    if (!testUrl) {
+    if (!testUrl)
       return res.status(400).json({ error: "URL parametresi gerekli" });
-    }
 
     res.json({
       message: "STT için /api/stt endpoint'ini kullanın",
@@ -373,7 +346,6 @@ app.get("/api/test", async (req, res) => {
   }
 });
 
-// Health check 
 app.get("/", (_, res) => {
   res.json({
     status: "OK",
@@ -394,7 +366,9 @@ app.get("/", (_, res) => {
   });
 });
 
-// Error handler
+/* -------------------------------
+   ⚠️ Global Error Handler
+--------------------------------*/
 app.use((err, req, res, next) => {
   console.error("❌ Global error:", err);
   res.status(500).json({
@@ -403,6 +377,9 @@ app.use((err, req, res, next) => {
   });
 });
 
+/* -------------------------------
+   🚀 Sunucu Başlatma
+--------------------------------*/
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`

@@ -126,6 +126,7 @@ export default function App() {
               <Stack.Screen name="Settings" component={SettingsScreen} />
               <Stack.Screen name="EditProfile" component={EditProfileScreen} />
 
+
             </Stack.Navigator>
           </NavigationContainer>
         </UserProvider>
