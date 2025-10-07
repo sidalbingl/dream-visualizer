@@ -1,55 +1,38 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { Video } from 'expo-av';
-
-// ❌ Adapty şimdilik devre dışı
-// import { Adapty, AdaptyPaywallProduct, AdaptyProfile } from 'react-native-adapty';
+import AdaptyService from '../services/AdaptyService';
+import AdaptyConstans from '../../AdaptyConstans';
 
 const PaywallScreen = ({ navigation }) => {
   const [selectedPlan, setSelectedPlan] = useState('monthly');
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState([]);
   const [profile, setProfile] = useState(null);
+  const [showMock, setShowMock] = useState(false);
 
   useEffect(() => {
-    const loadPaywall = async () => {
+    const loadProfile = async () => {
       try {
         setLoading(true);
-        // ❌ Adapty kodları devre dışı
-        // const paywall = await Adapty.getPaywall("default_paywall");
-        // const fetchedProducts = await Adapty.getPaywallProducts(paywall);
-        // setProducts(fetchedProducts || []);
-        // const prof = await Adapty.getProfile();
-        // setProfile(prof);
+        const prof = await AdaptyService.getProfile();
+        setProfile(prof);
       } catch (e) {
-        console.warn('Adapty paywall load error', e);
+        console.warn('Adapty profile load error', e);
       } finally {
         setLoading(false);
       }
     };
-    loadPaywall();
+    loadProfile();
   }, []);
 
   const features = [
-    {
-      icon: '🎬',
-      title: 'Dream to Video',
-      description: 'Turn your written dreams into vivid AI-generated videos'
-    },
-    {
-      icon: '📝',
-      title: 'Extended Interpretations',
-      description: 'Get longer and more detailed dream interpretations'
-    },
-    {
-      icon: '📺',
-      title: 'High-Quality Exports',
-      description: 'Download your dream videos in stunning 4K resolution'
-    }
+    { icon: '🎬', title: 'Dream to Video', description: 'Turn your written dreams into vivid AI-generated videos' },
+    { icon: '📝', title: 'Extended Interpretations', description: 'Get longer and more detailed dream interpretations' },
+    { icon: '📺', title: 'High-Quality Exports', description: 'Download your dream videos in stunning 4K resolution' }
   ];
-
 
   const selectedProduct = useMemo(() => {
     if (!products.length) return null;
@@ -61,29 +44,30 @@ const PaywallScreen = ({ navigation }) => {
 
   const handleSubscribe = async () => {
     try {
-      if (!selectedProduct) {
-        Alert.alert('Store', 'Ürünler yüklenemedi. Lütfen tekrar deneyin.');
+      setLoading(true);
+      const { presented } = await AdaptyService.presentNoCodePaywall();
+      if (!presented) {
+        setShowMock(true);
         return;
       }
-      setLoading(true);
-      // ❌ Adapty purchase kodu devre dışı
-      // const result = await Adapty.makePurchase(selectedProduct);
-      // const updated = await Adapty.getProfile();
-      // setProfile(updated);
-      // const isPremium = updated?.accessLevels?.premium?.isActive;
-      const isPremium = false; // Şimdilik hep free varsayıyoruz
+      const updated = await AdaptyService.getProfile();
+      setProfile(updated);
+      const isPremium = updated?.accessLevels?.[AdaptyConstans.ACCESS_LEVEL_ID]?.isActive;
       if (isPremium) {
         Alert.alert('Teşekkürler!', 'Premium etkin. Keyfini çıkarın.');
         navigation.goBack();
-      } else {
-        Alert.alert('Bilgi', 'Satın alma tamamlandı fakat premium görünmüyor.');
       }
     } catch (e) {
-      console.warn('purchase error', e);
-      Alert.alert('Hata', 'Satın alma başarısız.');
+      console.warn('present paywall error', e);
+      setShowMock(true);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleMockPurchase = () => {
+    setShowMock(false);
+    Alert.alert('Demo', 'Mock satın alma tamamlandı.');
   };
 
   const handleContinueFree = () => {
@@ -98,13 +82,11 @@ const PaywallScreen = ({ navigation }) => {
       <StatusBar style="light" />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Unlock Premium Features</Text>
           <Text style={styles.subtitle}>Transform your dreams with advanced AI capabilities</Text>
         </View>
 
-        {/* Demo Preview */}
         <View style={styles.demoContainer}>
           <View style={styles.demoBox}>
             <Text style={styles.demoIcon}>✨</Text>
@@ -123,7 +105,6 @@ const PaywallScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {/* Features List */}
         <View style={styles.featuresContainer}>
           <Text style={styles.featuresTitle}>Premium Features</Text>
           {features.map((feature, index) => (
@@ -137,18 +118,12 @@ const PaywallScreen = ({ navigation }) => {
           ))}
         </View>
 
-        {/* Pricing Plans */}
         <View style={styles.pricingContainer}>
           <Text style={styles.pricingTitle}>Choose Your Plan</Text>
           {loading && (
             <View style={{ paddingVertical: 8 }}>
               <ActivityIndicator color="#8b5cf6" />
             </View>
-          )}
-          {!loading && products.length === 0 && (
-            <Text style={{ color: 'rgba(255,255,255,0.7)', marginBottom: 12 }}>
-              Ürünler bulunamadı. Mağaza yapılandırmasını kontrol edin.
-            </Text>
           )}
 
           <TouchableOpacity
@@ -157,7 +132,7 @@ const PaywallScreen = ({ navigation }) => {
           >
             <View style={styles.planContent}>
               <Text style={styles.planTitle}>Monthly</Text>
-              <Text style={styles.planPrice}>$9.99/month</Text>
+              <Text style={styles.planPrice}>{selectedProduct?.localizedPrice || '$9.99/month'}</Text>
             </View>
             {selectedPlan === 'monthly' && <Text style={styles.planCheck}>✓</Text>}
           </TouchableOpacity>
@@ -168,7 +143,9 @@ const PaywallScreen = ({ navigation }) => {
           >
             <View style={styles.planContent}>
               <Text style={styles.planTitle}>Yearly</Text>
-              <Text style={styles.planPrice}>$59.99/year</Text>
+              <Text style={styles.planPrice}>
+                {products.find(p => p.subscriptionPeriod?.unit === 'year')?.localizedPrice || '$59.99/year'}
+              </Text>
               <Text style={styles.planSavings}>Save 50%</Text>
             </View>
             {selectedPlan === 'yearly' && <Text style={styles.planCheck}>✓</Text>}
@@ -176,7 +153,6 @@ const PaywallScreen = ({ navigation }) => {
         </View>
       </ScrollView>
 
-      {/* Bottom Actions */}
       <View style={styles.bottomContainer}>
         <TouchableOpacity style={styles.freeButton} onPress={handleContinueFree}>
           <Text style={styles.freeText}>Continue with Free Version</Text>
@@ -193,6 +169,22 @@ const PaywallScreen = ({ navigation }) => {
           </LinearGradient>
         </TouchableOpacity>
       </View>
+
+      <Modal visible={showMock} transparent animationType="fade" onRequestClose={() => setShowMock(false)}>
+        <View style={styles.mockBackdrop}>
+          <View style={styles.mockCard}>
+            <Text style={styles.mockTitle}>Premium (Demo)</Text>
+            <Text style={styles.mockDesc}>Bu bir önizleme ekranıdır. Gerçek satın alma yok.</Text>
+            <View style={{ height: 12 }} />
+            <TouchableOpacity style={styles.mockBtn} onPress={handleMockPurchase}>
+              <Text style={styles.mockBtnText}>Mock Purchase</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.mockBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }]} onPress={() => setShowMock(false)}>
+              <Text style={styles.mockBtnText}>Kapat</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 };
@@ -231,6 +223,12 @@ const styles = StyleSheet.create({
   subscribeButton: { borderRadius: 25, overflow: 'hidden' },
   subscribeButtonGradient: { paddingVertical: 16, alignItems: 'center' },
   subscribeText: { color: 'white', fontSize: 18, fontWeight: 'bold' },
+  mockBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  mockCard: { backgroundColor: '#1f2242', borderRadius: 16, padding: 20, width: '100%', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  mockTitle: { color: 'white', fontSize: 20, fontWeight: 'bold' },
+  mockDesc: { color: 'rgba(255,255,255,0.8)', marginTop: 8 },
+  mockBtn: { marginTop: 14, backgroundColor: '#6366f1', borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  mockBtnText: { color: 'white', fontWeight: 'bold' },
 });
 
 export default PaywallScreen;

@@ -10,11 +10,16 @@ import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { Cloud, Moon, Sparkles } from "lucide-react-native";
 import {
-  useFonts,
-  Inter_400Regular,
-  Inter_600SemiBold,
-  Inter_700Bold,
-} from "@expo-google-fonts/inter";
+  useFonts
+} from "expo-font";
+import {
+  Montserrat_300Light,
+  Montserrat_400Regular,
+  Montserrat_500Medium,
+  Montserrat_600SemiBold,
+  Montserrat_700Bold,
+  Montserrat_800ExtraBold
+} from "@expo-google-fonts/montserrat";
 
 export default function SplashScreen({ navigation }) {
   const colorScheme = useColorScheme();
@@ -29,9 +34,12 @@ export default function SplashScreen({ navigation }) {
   const textAnim = useRef(new Animated.Value(50)).current;
 
   const [fontsLoaded] = useFonts({
-    Inter_400Regular,
-    Inter_600SemiBold,
-    Inter_700Bold,
+    Montserrat_300Light,
+    Montserrat_400Regular,
+    Montserrat_500Medium,
+    Montserrat_600SemiBold,
+    Montserrat_700Bold,
+    Montserrat_800ExtraBold,
   });
 
   useEffect(() => {
@@ -85,7 +93,7 @@ export default function SplashScreen({ navigation }) {
 
     // Navigate after animation
     const timeout = setTimeout(() => {
-      navigation.replace("Onboarding");
+      navigation.replace("Paywall");
     }, 3000);
 
     return () => clearTimeout(timeout);
@@ -169,7 +177,7 @@ export default function SplashScreen({ navigation }) {
               <Text
                 style={{
                   fontSize: 32,
-                  fontFamily: "Inter_700Bold",
+                  fontFamily: "Montserrat_700Bold",
                   color: "#FFFFFF",
                   textAlign: "center",
                   marginBottom: 8,
@@ -180,7 +188,7 @@ export default function SplashScreen({ navigation }) {
               <Text
                 style={{
                   fontSize: 16,
-                  fontFamily: "Inter_400Regular",
+                  fontFamily: "Montserrat_400Regular",
                   color: "rgba(255, 255, 255, 0.8)",
                   textAlign: "center",
                 }}

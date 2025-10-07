@@ -32,7 +32,9 @@
       "jsEngine": "jsc"
     },
     "plugins": ["expo-av", "expo-font"],
-    "extra": {},
+    "extra": {
+      "ADAPTY_PUBLIC_SDK_KEY": "public_live_jaX974rN.WpfMbhJsUyHiKgTc82sV"
+    },
     "jsEngine": "hermes"
   }
 }

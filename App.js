@@ -3,14 +3,24 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
-import { Provider as PaperProvider } from 'react-native-paper';
+import { Provider as PaperProvider, MD3LightTheme, configureFonts } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { View, Platform } from 'react-native';
+import { View, Platform, Text as RNText, TextInput as RNTextInput } from 'react-native';
 import Constants from 'expo-constants';
+import { useFonts } from 'expo-font';
+import {
+  Montserrat_300Light,
+  Montserrat_400Regular,
+  Montserrat_500Medium,
+  Montserrat_600SemiBold,
+  Montserrat_700Bold,
+  Montserrat_800ExtraBold,
+} from '@expo-google-fonts/montserrat';
 
 // ✅ UserContext import
 import { UserProvider } from './src/context/UserContext';
+import AdaptyService from './src/services/AdaptyService';
 
 // Screens
 import SplashScreen from './src/screens/SplashScreen';
@@ -84,6 +94,7 @@ function MainTabs() {
           fontSize: 11,
           fontWeight: '500',
           marginTop: -2,
+          fontFamily: 'Montserrat_500Medium',
         },
       })}
     >
@@ -97,12 +108,69 @@ function MainTabs() {
 // ---------------- Root Stack ---------------- 
 export default function App() {
   useEffect(() => {
-    // ❌ Adapty devre dışı
+    AdaptyService.activate();
   }, []);
+
+  const [fontsLoaded] = useFonts({
+    Montserrat_300Light,
+    Montserrat_400Regular,
+    Montserrat_500Medium,
+    Montserrat_600SemiBold,
+    Montserrat_700Bold,
+    Montserrat_800ExtraBold,
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
+  if (!RNText.defaultProps) RNText.defaultProps = {};
+  RNText.defaultProps = {
+    ...RNText.defaultProps,
+    style: [
+      { fontFamily: 'Montserrat_400Regular' },
+      RNText.defaultProps && RNText.defaultProps.style,
+    ],
+  };
+
+  if (!RNTextInput.defaultProps) RNTextInput.defaultProps = {};
+  RNTextInput.defaultProps = {
+    ...RNTextInput.defaultProps,
+    style: [
+      { fontFamily: 'Montserrat_400Regular' },
+      RNTextInput.defaultProps && RNTextInput.defaultProps.style,
+    ],
+  };
+
+  const fontConfig = configureFonts({
+    config: {
+      fontFamily: 'Montserrat_400Regular',
+      displayLarge: { fontFamily: 'Montserrat_700Bold' },
+      displayMedium: { fontFamily: 'Montserrat_700Bold' },
+      displaySmall: { fontFamily: 'Montserrat_600SemiBold' },
+      headlineLarge: { fontFamily: 'Montserrat_700Bold' },
+      headlineMedium: { fontFamily: 'Montserrat_600SemiBold' },
+      headlineSmall: { fontFamily: 'Montserrat_600SemiBold' },
+      titleLarge: { fontFamily: 'Montserrat_600SemiBold' },
+      titleMedium: { fontFamily: 'Montserrat_500Medium' },
+      titleSmall: { fontFamily: 'Montserrat_500Medium' },
+      labelLarge: { fontFamily: 'Montserrat_500Medium' },
+      labelMedium: { fontFamily: 'Montserrat_500Medium' },
+      labelSmall: { fontFamily: 'Montserrat_500Medium' },
+      bodyLarge: { fontFamily: 'Montserrat_400Regular' },
+      bodyMedium: { fontFamily: 'Montserrat_400Regular' },
+      bodySmall: { fontFamily: 'Montserrat_300Light' },
+    },
+  });
+
+  const paperTheme = {
+    ...MD3LightTheme,
+    fonts: fontConfig,
+  };
 
   return (
     <SafeAreaProvider>
-      <PaperProvider>
+      <PaperProvider theme={paperTheme}>
         {/* ✅ Tüm uygulamayı UserProvider ile sardık */}
         <UserProvider>
           <NavigationContainer>

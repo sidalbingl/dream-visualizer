@@ -15,12 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useNavigation, useIsFocused } from "@react-navigation/native";
 import { Heart, Search, Filter, Grid, List, Trash2 } from "lucide-react-native";
-import {
-  useFonts,
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-} from "@expo-google-fonts/inter";
+// Fonts are loaded globally in App.js (Montserrat)
 import {
   onSnapshot,
   collection,
@@ -47,11 +42,7 @@ export default function GalleryScreen() {
   const [longPressedItem, setLongPressedItem] = useState(null);
   const isFocused = useIsFocused();
 
-  const [fontsLoaded] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-  });
+  // Fonts are already loaded globally
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -77,7 +68,7 @@ export default function GalleryScreen() {
     return () => unsub();
   }, [isFocused]);
 
-  if (!fontsLoaded) return null;
+  // No local font gate needed
 
   const filteredDreams = dreams.filter((d) =>
     filter === "favorites" ? d.isFavorite : true
@@ -255,7 +246,7 @@ export default function GalleryScreen() {
           <Text
             style={{
               fontSize: viewMode === "list" ? 16 : 14,
-              fontFamily: "Inter_600SemiBold",
+              fontFamily: "Montserrat_600SemiBold",
               color: isDark ? "#fff" : "#333",
               marginBottom: 4,
             }}
@@ -265,7 +256,7 @@ export default function GalleryScreen() {
           <Text
             style={{
               fontSize: viewMode === "list" ? 14 : 12,
-              fontFamily: "Inter_400Regular",
+              fontFamily: "Montserrat_400Regular",
               color: isDark ? "rgba(255,255,255,0.7)" : "#666",
               lineHeight: 18,
             }}
@@ -276,7 +267,7 @@ export default function GalleryScreen() {
           <Text
             style={{
               fontSize: 11,
-              fontFamily: "Inter_400Regular",
+              fontFamily: "Montserrat_400Regular",
               color: isDark ? "rgba(255,255,255,0.5)" : "#999",
               marginTop: 4,
             }}
@@ -308,7 +299,7 @@ export default function GalleryScreen() {
         <Text
           style={{
             fontSize: 28,
-            fontFamily: "Inter_600SemiBold",
+            fontFamily: "Montserrat_600SemiBold",
             color: "#fff",
             marginBottom: 16,
           }}
@@ -342,7 +333,7 @@ export default function GalleryScreen() {
               style={{
                 marginLeft: 8,
                 fontSize: 16,
-                fontFamily: "Inter_400Regular",
+                fontFamily: "Montserrat_400Regular",
                 color: "rgba(255,255,255,0.7)",
               }}
             >
@@ -404,7 +395,7 @@ export default function GalleryScreen() {
               <Text
                 style={{
                   fontSize: 14,
-                  fontFamily: "Inter_500Medium",
+                  fontFamily: "Montserrat_500Medium",
                   color: "#fff",
                 }}
               >
@@ -428,7 +419,7 @@ export default function GalleryScreen() {
           <Text
             style={{
               fontSize: 20,
-              fontFamily: "Inter_600SemiBold",
+              fontFamily: "Montserrat_600SemiBold",
               color: "#fff",
               textAlign: "center",
               marginTop: 16,
@@ -440,7 +431,7 @@ export default function GalleryScreen() {
           <Text
             style={{
               fontSize: 16,
-              fontFamily: "Inter_400Regular",
+              fontFamily: "Montserrat_400Regular",
               color: "rgba(255,255,255,0.8)",
               textAlign: "center",
               lineHeight: 24,

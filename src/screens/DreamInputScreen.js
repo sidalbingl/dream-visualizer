@@ -16,12 +16,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Mic, Sparkles, MicOff } from "lucide-react-native";
-import {
-  useFonts,
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-} from "@expo-google-fonts/inter";
+// Fonts are loaded globally in App.js (Montserrat)
 import { Audio } from "expo-av";
 import axios from "axios";
 
@@ -44,11 +39,7 @@ export default function DreamInputScreen({ navigation }) {
   const glowAnimation = useRef(new Animated.Value(0)).current;
   const micPulse = useRef(new Animated.Value(1)).current;
 
-  const [fontsLoaded] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-  });
+  // No local font gate needed; fonts are global
 
   useEffect(() => {
     const glowLoop = Animated.loop(
@@ -74,7 +65,7 @@ export default function DreamInputScreen({ navigation }) {
     }
   }, [isRecording]);
 
-  if (!fontsLoaded) return null;
+  // Fonts already loaded globally
 
   // 🎙 Mikrofon basınca kayıt başlat / durdur
   const handleMicPress = async () => {
@@ -177,10 +168,10 @@ export default function DreamInputScreen({ navigation }) {
 
         {/* Header */}
         <View style={{ paddingTop: insets.top + 16, paddingHorizontal: 40, paddingBottom: 40 }}>
-          <Text style={{ fontSize: 28, fontFamily: "Inter_600SemiBold", color: "#FFFFFF", textAlign: "center" }}>
+          <Text style={{ fontSize: 28, fontFamily: "Montserrat_600SemiBold", color: "#FFFFFF", textAlign: "center" }}>
             Dream Visualizer
           </Text>
-          <Text style={{ fontSize: 16, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.8)", textAlign: "center", marginTop: 4 }}>
+          <Text style={{ fontSize: 16, fontFamily: "Montserrat_400Regular", color: "rgba(255,255,255,0.8)", textAlign: "center", marginTop: 4 }}>
             Bring your dreams to life
           </Text>
         </View>
@@ -191,14 +182,14 @@ export default function DreamInputScreen({ navigation }) {
             
             {/* Dream Input Card */}
             <View style={{ backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 20, padding: 24, marginBottom: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.2)" }}>
-              <Text style={{ fontSize: 18, fontFamily: "Inter_600SemiBold", color: "#FFFFFF", marginBottom: 16, textAlign: "center" }}>
+              <Text style={{ fontSize: 18, fontFamily: "Montserrat_600SemiBold", color: "#FFFFFF", marginBottom: 16, textAlign: "center" }}>
                 Describe Your Dream
               </Text>
 
               {/* Text Input + Mic */}
               <View style={{ position: "relative" }}>
                 <TextInput
-                  style={{ backgroundColor: "rgba(255,255,255,0.9)", borderRadius: 16, padding: 20, paddingRight: 60, fontSize: 16, fontFamily: "Inter_400Regular", color: "#333", minHeight: 120, textAlignVertical: "top" }}
+                  style={{ backgroundColor: "rgba(255,255,255,0.9)", borderRadius: 16, padding: 20, paddingRight: 60, fontSize: 16, fontFamily: "Montserrat_400Regular", color: "#333", minHeight: 120, textAlignVertical: "top" }}
                   placeholder="Describe your dream..."
                   placeholderTextColor="#999"
                   multiline
@@ -221,8 +212,8 @@ export default function DreamInputScreen({ navigation }) {
                 </Animated.View>
               </View>
 
-              {isRecording && <Text style={{ fontSize: 14, fontFamily: "Inter_500Medium", color: "#f87171", textAlign: "center", marginTop: 12 }}>Recording... Tap mic to stop</Text>}
-              {isTranscribing && <Text style={{ fontSize: 14, fontFamily: "Inter_500Medium", color: "#fbbf24", textAlign: "center", marginTop: 12 }}>Converting speech to text...</Text>}
+              {isRecording && <Text style={{ fontSize: 14, fontFamily: "Montserrat_500Medium", color: "#f87171", textAlign: "center", marginTop: 12 }}>Recording... Tap mic to stop</Text>}
+              {isTranscribing && <Text style={{ fontSize: 14, fontFamily: "Montserrat_500Medium", color: "#fbbf24", textAlign: "center", marginTop: 12 }}>Converting speech to text...</Text>}
             </View>
 
             {/* 🔑 Premium Toggle */}
@@ -246,7 +237,7 @@ export default function DreamInputScreen({ navigation }) {
                 }}
               >
                 <Sparkles size={24} color="#fff" style={{ marginBottom: -4 }} />
-                <Text style={{ fontSize: 18, fontFamily: "Inter_600SemiBold", color: "#fff", marginTop: 4 }}>
+                <Text style={{ fontSize: 18, fontFamily: "Montserrat_600SemiBold", color: "#fff", marginTop: 4 }}>
                   {isGenerating ? "Visualizing..." : "Visualize Dream"}
                 </Text>
               </TouchableOpacity>

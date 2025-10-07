@@ -13,7 +13,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { User, Settings, HelpCircle, Share2, Star, Heart, Crown, Moon, ChevronRight, LogOut } from "lucide-react-native";
-import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from "@expo-google-fonts/inter";
+// Fonts are loaded globally in App.js (Montserrat)
 import { logout } from "../services/authService";
 
 // Profil eylemleri
@@ -54,8 +54,7 @@ export default function ProfileScreen({ navigation }) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold });
-  if (!fontsLoaded) return null;
+  // No local font gate needed; fonts are global
 
   const handleSignOut = async () => {
     const confirmed = Platform.OS === 'web'
@@ -174,21 +173,21 @@ export default function ProfileScreen({ navigation }) {
 
 
 const styles = StyleSheet.create({
-  headerTitle: { fontSize: 28, fontFamily: "Inter_600SemiBold", color: "#FFFFFF" },
+  headerTitle: { fontSize: 28, fontFamily: "Montserrat_600SemiBold", color: "#FFFFFF" },
   profileCard: { backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 20, padding: 24, marginBottom: 30, borderWidth: 1, borderColor: "rgba(255,255,255,0.2)", alignItems: "center" },
   avatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: "rgba(255,255,255,0.2)", justifyContent: "center", alignItems: "center", marginBottom: 16, borderWidth: 3, borderColor: "rgba(255,255,255,0.3)" },
-  profileName: { fontSize: 24, fontFamily: "Inter_600SemiBold", color: "#FFFFFF", marginBottom: 4 },
-  profileEmail: { fontSize: 16, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.8)", marginBottom: 20 },
+  profileName: { fontSize: 24, fontFamily: "Montserrat_600SemiBold", color: "#FFFFFF", marginBottom: 4 },
+  profileEmail: { fontSize: 16, fontFamily: "Montserrat_400Regular", color: "rgba(255,255,255,0.8)", marginBottom: 20 },
   statsContainer: { flexDirection: "row", justifyContent: "space-around", width: "100%" },
   stat: { alignItems: "center" },
-  statNumber: { fontSize: 20, fontFamily: "Inter_600SemiBold", color: "#FFFFFF" },
-  statLabel: { fontSize: 14, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.7)" },
+  statNumber: { fontSize: 20, fontFamily: "Montserrat_600SemiBold", color: "#FFFFFF" },
+  statLabel: { fontSize: 14, fontFamily: "Montserrat_400Regular", color: "rgba(255,255,255,0.7)" },
   divider: { width: 1, height: 40, backgroundColor: "rgba(255,255,255,0.3)" },
   actionItem: { backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 16, padding: 20, marginBottom: 12, flexDirection: "row", alignItems: "center", borderWidth: 1 },
   actionIconContainer: { width: 48, height: 48, borderRadius: 24, justifyContent: "center", alignItems: "center", marginRight: 16 },
-  actionLabel: { fontSize: 16, fontFamily: "Inter_600SemiBold", color: "#FFFFFF", marginBottom: 2 },
-  actionSubtitle: { fontSize: 14, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.7)", lineHeight: 18 },
+  actionLabel: { fontSize: 16, fontFamily: "Montserrat_600SemiBold", color: "#FFFFFF", marginBottom: 2 },
+  actionSubtitle: { fontSize: 14, fontFamily: "Montserrat_400Regular", color: "rgba(255,255,255,0.7)", lineHeight: 18 },
   signOutButton: { backgroundColor: "rgba(248,113,113,0.2)", borderRadius: 16, padding: 20, flexDirection: "row", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(248,113,113,0.3)" },
-  signOutText: { fontSize: 16, fontFamily: "Inter_600SemiBold", color: "#f87171" },
-  appVersion: { fontSize: 12, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.5)", textAlign: "center", marginTop: 20 },
+  signOutText: { fontSize: 16, fontFamily: "Montserrat_600SemiBold", color: "#f87171" },
+  appVersion: { fontSize: 12, fontFamily: "Montserrat_400Regular", color: "rgba(255,255,255,0.5)", textAlign: "center", marginTop: 20 },
 });
