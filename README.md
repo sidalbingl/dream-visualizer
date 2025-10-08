@@ -45,71 +45,122 @@ Dream Visualizer transforms your dreams into stunning AI-generated visualization
 
 ### Prerequisites
 - Node.js 18+
-- Bun (for backend)
-- Expo CLI
-- iOS Simulator or Android Emulator
+- Bun (backend runtime) — `curl -fsSL https://bun.sh/install | bash`
+- Expo CLI — `npm i -g expo` (optional, `npx expo` works too)
+- EAS CLI (for dev client) — `npm i -g eas-cli`
+- Android Studio (SDK + Emulator) or Xcode (iOS)
+- Google Play Console / App Store Connect test accounts for IAP testing
 
-### Installation
+### 1) Clone & install
+```bash
+git clone <repository-url>
+cd dream-visualizer
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd DreamVisualizer
-   ```
+# Mobile deps
+npm install
 
-2. **Install dependencies**
-   ```bash
-   # Install mobile dependencies
-   npm install
-   
-   # Install backend dependencies
-   cd backend
-   bun install
-   ```
+# Backend deps
+cd backend
+bun install
+```
 
-3. **Environment Setup**
-   ```bash
-   # Copy environment file
-   cd backend
-   cp env.example .env
-   
-   # Edit .env with your API keys
-   # - FAL_API_KEY: Get from fal.ai
-   # - OPENAI_API_KEY: Get from OpenAI
-   # - ADAPTY_API_KEY: Get from Adapty
-   ```
+### 2) Configure environment
+- Backend: copy env and fill keys
+```bash
+cd backend
+cp env.example .env
+# Set values in .env:
+# FAL_API_KEY=...
+# OPENAI_API_KEY=...
+# (If your backend calls Adapty Server API, set ADAPTY_SECRET_KEY=...)
+```
 
-4. **Start the development servers**
-   ```bash
-   # Start backend (Terminal 1)
-   cd backend
-   bun run dev
-   
-   # Start mobile app (Terminal 2)
-   npm start
-   ```
+- Mobile (Adapty public SDK key): set in `AdaptyConstans.js`
+```js
+// AdaptyConstans.js
+export default {
+  ADAPTY_API_KEY: "YOUR_PUBLIC_SDK_KEY", // Adapty Dashboard → App settings → General → API keys (Public)
+  PLACEMENT_ID: "default" // or your placement id
+};
+```
+
+### 3) Build an Expo Dev Client (required for Adapty)
+Adapty uses native modules; Expo Go is not sufficient.
+```bash
+# From project root
+expo install expo-dev-client react-native-adapty @adapty/react-native-ui
+
+# Build dev client (choose one or both)
+eas build --profile development --platform android
+eas build --profile development --platform ios
+```
+When the build finishes, install the .apk/.aab (Android) or .ipa (iOS) on your device/emulator.
+
+### 4) Run the project
+```bash
+# Terminal 1 - Backend
+cd backend
+bun run dev
+
+# Terminal 2 - Mobile
+cd ..
+expo start --dev-client
+```
+Scan the QR (device) or run from Android Studio/Xcode using the Dev Client you installed.
+
+### 5) In‑app purchase testing tips
+- Android Emulator: use a Play Store–enabled image (Pixel API xx “Play Store”). Sign in to Play Store.
+- In Google Play Console, add your tester account to License Testing or use internal testing. Products must be created and Active.
+- iOS: use a real device with a Sandbox Apple ID. Configure IAP products in App Store Connect.
+- Paywall is shown via Adapty; purchases flow through the store. Free option simply sets Standard plan.
+
+### Troubleshooting
+- If you see HTML in API responses (ngrok warning), ensure `ngrok-skip-browser-warning` header is sent (already set), and the tunnel URL points to your backend.
+- If you get “Adapty can only be activated once”, Dev Client + Fast Refresh caused a double activate; we set `__ignoreActivationOnFastRefresh: __DEV__` to mitigate.
 
 ## 📱 App Structure
 
 ```
-src/
-├── screens/           # Main app screens
-│   ├── SplashScreen.js
-│   ├── OnboardingScreen.js
-│   ├── DreamInputScreen.js
-│   ├── VisualizationScreen.js
-│   ├── FavoritesScreen.js
-│   └── PaywallScreen.js
-├── components/        # Reusable components
-├── services/          # API and external services
-├── utils/            # Utility functions
-└── types/            # Type definitions
-
-backend/
-├── index.js          # Main server file
-├── routes/           # API routes
-├── models/           # Database models
-└── services/         # External API integrations
+.
+├── App.js
+├── AdaptyConstans.js
+├── app.json
+├── eas.json
+├── assets/
+│   ├── icon.png
+│   ├── splash.png
+│   └── output-4.mp4
+├── android/                 # Native Android project (autolinked)
+├── backend/
+│   ├── server.js / index.js # Backend entry
+│   ├── env.example          # Copy to .env and fill keys
+│   ├── package.json
+│   └── uploads/             # Generated media
+├── src/
+│   ├── context/
+│   │   └── UserContext.js
+│   ├── services/
+│   │   ├── AdaptyService.js
+│   │   ├── api.js
+│   │   └── authService.js
+│   ├── screens/
+│   │   ├── SplashScreen.js
+│   │   ├── OnboardingScreen.js
+│   │   ├── PaywallScreen.js
+│   │   ├── RegisterScreen.js
+│   │   ├── LoginScreen.js
+│   │   ├── DreamInputScreen.js
+│   │   ├── VisualizationScreen.js
+│   │   ├── GalleryScreen.js
+│   │   ├── FavoritesScreen.js
+│   │   ├── FavoriteDetailScreen.js
+│   │   ├── EditProfileScreen.js
+│   │   └── SettingsScreen.js
+│   └── firebaseConfig.js
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+└── README.md
 ```
 
 ## 🔄 User Flow
