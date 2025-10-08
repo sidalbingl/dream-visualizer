@@ -228,14 +228,6 @@ Scan the QR (device) or run from Android Studio/Xcode using the Dev Client you i
 - ⏳ Sharing functionality
 - ⏳ Demo preparation
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
@@ -247,7 +239,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - OpenAI for dream analysis
 - React Native community
 
-## 10) Contributors
+## 🤝 Contributors
 - @damlalper
 
 1. Fork the repository
